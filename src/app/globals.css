@@ -1,0 +1,120 @@
+@import "tailwindcss";
+
+:root {
+  --background: #f3eee6;
+  --foreground: #1f3334;
+}
+
+@theme inline {
+  --color-background: var(--background);
+  --color-foreground: var(--foreground);
+  --color-cream: #f3eee6;
+  --color-ink: #1f3334;
+  --color-muted: #5c6e6f;
+  --color-teal: #14686e;
+  --color-teal-dark: #0e4f54;
+  --color-pink: #f23d8a;
+  --color-pink-hover: #d92a76;
+  --color-line: #e4ddd2;
+  --color-stamp-red: #d64545;
+  --color-stamp-green: #2f9e5f;
+  --color-stamp-yellow: #e6c84a;
+  --font-sans: var(--font-plus-jakarta);
+  --font-display: var(--font-fraunces);
+}
+
+html {
+  scroll-behavior: smooth;
+}
+
+body {
+  background:
+    radial-gradient(1200px 500px at 10% -10%, rgba(20, 104, 110, 0.08), transparent 50%),
+    radial-gradient(900px 400px at 100% 0%, rgba(242, 61, 138, 0.08), transparent 45%),
+    var(--color-cream);
+  color: var(--color-ink);
+  font-family: var(--font-plus-jakarta), ui-sans-serif, system-ui, sans-serif;
+}
+
+.font-display {
+  font-family: var(--font-fraunces), ui-serif, Georgia, serif;
+  font-weight: 560;
+}
+
+.input {
+  width: 100%;
+  border-radius: 1rem;
+  border: 1px solid var(--color-line);
+  background: #fff;
+  padding: 0.7rem 0.9rem;
+  color: var(--color-ink);
+  outline: none;
+}
+
+.input:focus {
+  border-color: var(--color-teal);
+  box-shadow: 0 0 0 4px rgba(20, 104, 110, 0.15);
+}
+
+.btn-pink,
+.btn-ghost {
+  display: inline-flex;
+  align-items: center;
+  justify-content: center;
+  gap: 0.5rem;
+  border-radius: 999px;
+  padding: 0.75rem 1.15rem;
+  font-size: 0.95rem;
+  font-weight: 650;
+  transition: transform 0.15s ease, background-color 0.15s ease, opacity 0.15s ease;
+}
+
+.btn-pink {
+  background: var(--color-pink);
+  color: white;
+}
+
+.btn-pink:hover {
+  background: var(--color-pink-hover);
+}
+
+.btn-ghost {
+  border: 1px solid var(--color-line);
+  background: white;
+  color: var(--color-ink);
+}
+
+.btn-ghost:hover {
+  border-color: rgba(20, 104, 110, 0.45);
+}
+
+.btn-pink:disabled,
+.btn-ghost:disabled {
+  opacity: 0.6;
+  cursor: not-allowed;
+}
+
+.btn-pink:focus-visible,
+.btn-ghost:focus-visible,
+.input:focus-visible,
+a:focus-visible,
+button:focus-visible {
+  outline: 3px solid rgba(20, 104, 110, 0.45);
+  outline-offset: 2px;
+}
+
+.check {
+  width: 1.05rem;
+  height: 1.05rem;
+  accent-color: var(--color-teal);
+}
+
+@media (prefers-reduced-motion: reduce) {
+  html {
+    scroll-behavior: auto;
+  }
+  .btn-pink,
+  .btn-ghost {
+    transition: none;
+  }
+}

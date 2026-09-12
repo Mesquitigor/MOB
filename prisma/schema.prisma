@@ -1,0 +1,63 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "sqlite"
+  url      = env("DATABASE_URL")
+}
+
+model User {
+  id           String               @id @default(cuid())
+  name         String
+  email        String               @unique
+  passwordHash String
+  createdAt    DateTime             @default(now())
+  updatedAt    DateTime             @updatedAt
+  entries      DayEntry[]
+  cycles       Cycle[]
+  resetTokens  PasswordResetToken[]
+}
+
+model PasswordResetToken {
+  id        String   @id @default(cuid())
+  tokenHash String   @unique
+  userId    String
+  user      User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  expiresAt DateTime
+  createdAt DateTime @default(now())
+}
+
+model Cycle {
+  id        String     @id @default(cuid())
+  userId    String
+  user      User       @relation(fields: [userId], references: [id], onDelete: Cascade)
+  startDate String
+  endDate   String?
+  createdAt DateTime   @default(now())
+  entries   DayEntry[]
+
+  @@index([userId, startDate])
+}
+
+model DayEntry {
+  id          String   @id @default(cuid())
+  userId      String
+  user        User     @relation(fields: [userId], references: [id], onDelete: Cascade)
+  cycleId     String?
+  cycle       Cycle?   @relation(fields: [cycleId], references: [id], onDelete: SetNull)
+  date        String
+  stamp       String
+  sensation   String?
+  mucus       String?
+  bleeding    String?
+  intercourse Boolean  @default(false)
+  peak        Boolean  @default(false)
+  notes       String   @default("")
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+
+  @@unique([userId, date])
+  @@index([userId, date])
+  @@index([cycleId])
+}
