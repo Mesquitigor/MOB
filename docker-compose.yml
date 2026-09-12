@@ -1,0 +1,14 @@
+services:
+  db:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_USER: mob
+      POSTGRES_PASSWORD: mob
+      POSTGRES_DB: mob
+    ports:
+      - "5432:5432"
+    volumes:
+      - mob_pg:/var/lib/postgresql/data
+
+volumes:
+  mob_pg:
