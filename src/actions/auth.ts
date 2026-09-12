@@ -1,7 +1,7 @@
 "use server";
 
 import { redirect } from "next/navigation";
-import { prisma } from "@/lib/db";
+import { getPrisma } from "@/lib/db";
 import { canSendEmail, sendMail, appUrl } from "@/lib/email";
 import { createResetToken, hashPassword, hashToken, verifyPassword } from "@/lib/password";
 import { asAuthError, envConfigError, type AuthState } from "@/lib/safe-action";
@@ -26,6 +26,7 @@ export async function registerAction(_prev: AuthState, formData: FormData): Prom
   }
 
   try {
+    const prisma = getPrisma();
     const exists = await prisma.user.findUnique({ where: { email } });
     if (exists) {
       return { error: "Já existe uma conta com este e-mail." };
@@ -61,6 +62,7 @@ export async function loginAction(_prev: AuthState, formData: FormData): Promise
   }
 
   try {
+    const prisma = getPrisma();
     const user = await prisma.user.findUnique({ where: { email } });
     if (!user || !(await verifyPassword(password, user.passwordHash))) {
       return { error: "E-mail ou senha inválidos." };
@@ -88,6 +90,7 @@ export async function forgotPasswordAction(_prev: AuthState, formData: FormData)
   if (!email) return { error: "Informe o e-mail cadastrado." };
 
   try {
+    const prisma = getPrisma();
     const user = await prisma.user.findUnique({ where: { email } });
     const generic = "Se este e-mail estiver cadastrado, você poderá redefinir a senha.";
 
@@ -141,6 +144,7 @@ export async function resetPasswordAction(_prev: AuthState, formData: FormData):
   }
 
   try {
+    const prisma = getPrisma();
     const record = await prisma.passwordResetToken.findUnique({
       where: { tokenHash: hashToken(token) },
       include: { user: true },
@@ -176,6 +180,7 @@ export async function updateProfileAction(_prev: AuthState, formData: FormData):
   if (!name || !email) return { error: "Nome e e-mail são obrigatórios." };
 
   try {
+    const prisma = getPrisma();
     const clash = await prisma.user.findFirst({
       where: { email, id: { not: session.id } },
     });
@@ -202,6 +207,7 @@ export async function changePasswordAction(_prev: AuthState, formData: FormData)
   if (!current || !next) return { error: "Preencha a senha atual e a nova." };
 
   try {
+    const prisma = getPrisma();
     const user = await prisma.user.findUnique({ where: { id: session.id } });
     if (!user || !(await verifyPassword(current, user.passwordHash))) {
       return { error: "Senha atual incorreta." };

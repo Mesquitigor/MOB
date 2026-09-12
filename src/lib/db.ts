@@ -1,14 +1,19 @@
 import { PrismaClient } from "@prisma/client";
+import { resolveDatabaseUrl } from "@/lib/env";
 
 const globalForPrisma = globalThis as unknown as { prisma?: PrismaClient };
 
-export const prisma = globalForPrisma.prisma ?? new PrismaClient();
+export function getPrisma() {
+  const url = resolveDatabaseUrl();
+  if (!url.startsWith("postgres://") && !url.startsWith("postgresql://")) {
+    throw new Error("DATABASE_URL_MISSING");
+  }
 
-if (process.env.NODE_ENV !== "production") {
-  globalForPrisma.prisma = prisma;
-}
+  if (!globalForPrisma.prisma) {
+    globalForPrisma.prisma = new PrismaClient({
+      datasources: { db: { url } },
+    });
+  }
 
-export function databaseConfigured() {
-  const url = process.env.DATABASE_URL ?? "";
-  return url.startsWith("postgres://") || url.startsWith("postgresql://");
+  return globalForPrisma.prisma;
 }

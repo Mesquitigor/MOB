@@ -1,7 +1,7 @@
 import { CycleBoard } from "@/components/cycle-board";
 import { todayISO } from "@/lib/dates";
 import { getOpenCycle, mapCycleEntries } from "@/lib/entries";
-import { prisma } from "@/lib/db";
+import { getPrisma } from "@/lib/db";
 import { getSession } from "@/lib/session";
 import { redirect } from "next/navigation";
 
@@ -9,6 +9,7 @@ export default async function DiarioPage() {
   const session = await getSession();
   if (!session) redirect("/entrar");
 
+  const prisma = getPrisma();
   const today = todayISO();
   const cycle = await getOpenCycle(session.id);
   const full = cycle

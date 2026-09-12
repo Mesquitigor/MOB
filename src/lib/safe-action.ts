@@ -1,4 +1,4 @@
-import { databaseConfigured } from "@/lib/db";
+import { databaseConfigured } from "@/lib/env";
 
 export type AuthState = {
   error?: string;
@@ -32,5 +32,10 @@ function isRedirectError(error: unknown) {
 export function asAuthError(error: unknown): AuthState {
   if (isRedirectError(error)) throw error;
   console.error(error);
+  if (error instanceof Error && error.message === "DATABASE_URL_MISSING") {
+    return envConfigError() ?? {
+      error: "O cadastro precisa de um PostgreSQL. Configure DATABASE_URL na Vercel.",
+    };
+  }
   return { error: "Não foi possível concluir agora. Tente de novo em instantes." };
 }

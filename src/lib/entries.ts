@@ -1,4 +1,4 @@
-import { prisma } from "@/lib/db";
+import { getPrisma } from "@/lib/db";
 import { addDaysISO, diffDays } from "@/lib/dates";
 import {
   isBleeding,
@@ -26,6 +26,7 @@ function toView(entry: DayEntry, cycleStart?: string | null): DayEntryView {
 }
 
 export async function getOpenCycle(userId: string) {
+  const prisma = getPrisma();
   return prisma.cycle.findFirst({
     where: { userId, endDate: null },
     orderBy: { startDate: "desc" },
@@ -33,6 +34,7 @@ export async function getOpenCycle(userId: string) {
 }
 
 export async function listCycles(userId: string) {
+  const prisma = getPrisma();
   return prisma.cycle.findMany({
     where: { userId },
     orderBy: { startDate: "desc" },
@@ -43,6 +45,7 @@ export async function listCycles(userId: string) {
 }
 
 export async function listEntriesInRange(userId: string, from: string, to: string) {
+  const prisma = getPrisma();
   const entries = await prisma.dayEntry.findMany({
     where: {
       userId,
@@ -85,6 +88,7 @@ export async function saveDayEntry(input: {
   notes: string;
   startNewCycle: boolean;
 }) {
+  const prisma = getPrisma();
   const existing = await prisma.dayEntry.findUnique({
     where: { userId_date: { userId: input.userId, date: input.date } },
   });
@@ -136,6 +140,7 @@ export async function saveDayEntry(input: {
 }
 
 export async function deleteDayEntry(userId: string, date: string) {
+  const prisma = getPrisma();
   const existing = await prisma.dayEntry.findUnique({
     where: { userId_date: { userId, date } },
   });
