@@ -22,10 +22,10 @@ Cadastro: nome, e-mail e senha, sem confirmação de e-mail. O login só funcion
 
 SQLite não funciona na Vercel (disco somente leitura). É preciso um Postgres e um segredo de sessão:
 
-1. No projeto da Vercel, abra **Storage** → **Create Database** → **Postgres** e conecte ao projeto. Isso cria `DATABASE_URL`.
-2. Em **Settings → Environment Variables**, adicione `AUTH_SECRET` com uma chave longa e aleatória.
-3. Se o painel criou `POSTGRES_URL` e não `DATABASE_URL`, o app também aceita `POSTGRES_URL` / `POSTGRES_PRISMA_URL`. Ainda assim, o mais simples é copiar o valor para `DATABASE_URL`.
-4. Faça um novo deploy. O build roda `prisma db push` e cria as tabelas.
+1. No projeto da Vercel, abra **Storage** → **Create Database** → **Postgres** e conecte ao projeto.
+2. Em **Settings → Environment Variables**, confira se existe `DATABASE_URL` (ou `POSTGRES_URL`) começando com `postgres`. Aplique em Production, Preview e Development.
+3. Adicione `AUTH_SECRET` com uma chave longa (`openssl rand -base64 48`).
+4. **Redeploy** o último deployment. Sem o banco, o site sobe, mas o cadastro não grava usuário.
 
 ## E-mail (recuperar senha e relatório em PDF)
 
