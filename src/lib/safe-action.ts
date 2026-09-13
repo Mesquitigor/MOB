@@ -1,4 +1,3 @@
-import { connection } from "next/server";
 import { authSecret, databaseConfigured } from "@/lib/env";
 
 export type AuthState = {
@@ -8,9 +7,11 @@ export type AuthState = {
 };
 
 export async function envConfigError(): Promise<AuthState | null> {
-  await connection();
   if (!authSecret()) {
-    return { error: "AUTH_SECRET não está definido. Inclua essa variável na Vercel e faça um novo deploy." };
+    return {
+      error:
+        "AUTH_SECRET não chegou a este deploy. Confira a variável em Production e publique um deploy novo.",
+    };
   }
   if (!databaseConfigured()) {
     return {

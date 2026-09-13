@@ -1,13 +1,13 @@
-export function readEnv(name: string) {
-  return (process.env[name] ?? "").trim();
+function clean(value: string | undefined) {
+  return (value ?? "").trim();
 }
 
 function fromParts() {
-  const host = readEnv("PGHOST") || readEnv("POSTGRES_HOST");
-  const user = readEnv("PGUSER") || readEnv("POSTGRES_USER");
-  const password = readEnv("PGPASSWORD") || readEnv("POSTGRES_PASSWORD");
-  const database = readEnv("PGDATABASE") || readEnv("POSTGRES_DATABASE");
-  const port = readEnv("PGPORT") || readEnv("POSTGRES_PORT") || "5432";
+  const host = clean(process.env.PGHOST) || clean(process.env.POSTGRES_HOST);
+  const user = clean(process.env.PGUSER) || clean(process.env.POSTGRES_USER);
+  const password = clean(process.env.PGPASSWORD) || clean(process.env.POSTGRES_PASSWORD);
+  const database = clean(process.env.PGDATABASE) || clean(process.env.POSTGRES_DATABASE);
+  const port = clean(process.env.PGPORT) || clean(process.env.POSTGRES_PORT) || "5432";
   if (!host || !user || !database) return "";
   const auth = password
     ? `${encodeURIComponent(user)}:${encodeURIComponent(password)}`
@@ -17,11 +17,11 @@ function fromParts() {
 
 export function resolveDatabaseUrl() {
   const candidates = [
-    readEnv("DATABASE_URL"),
-    readEnv("POSTGRES_PRISMA_URL"),
-    readEnv("POSTGRES_URL"),
-    readEnv("POSTGRES_URL_NON_POOLING"),
-    readEnv("DATABASE_URL_UNPOOLED"),
+    clean(process.env.DATABASE_URL),
+    clean(process.env.POSTGRES_PRISMA_URL),
+    clean(process.env.POSTGRES_URL),
+    clean(process.env.POSTGRES_URL_NON_POOLING),
+    clean(process.env.DATABASE_URL_UNPOOLED),
     fromParts(),
   ].filter(Boolean);
 
@@ -37,5 +37,5 @@ export function databaseConfigured() {
 }
 
 export function authSecret() {
-  return readEnv("AUTH_SECRET");
+  return clean(process.env.AUTH_SECRET);
 }
