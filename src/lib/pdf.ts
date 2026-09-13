@@ -8,6 +8,14 @@ const MUTED = rgb(0.36, 0.43, 0.43);
 const LINE = rgb(0.86, 0.83, 0.78);
 const CREAM = rgb(0.97, 0.95, 0.91);
 
+const PDF_STAMP_SHORT: Record<StampType, string> = {
+  MENSTRUATION: "MENST.",
+  SPOTTING: "MANCHAS",
+  DRY: "SECA",
+  FERTILE: "FERTIL",
+  INFERTILE: "PBI",
+};
+
 function hex(value: string): RGB {
   const clean = value.replace("#", "");
   return rgb(
@@ -72,14 +80,69 @@ function textWidth(font: PDFFont, value: string, size: number) {
   return font.widthOfTextAtSize(value, size);
 }
 
+const encodable = new Map<string, boolean>();
+
+function prepare(font: PDFFont, value: string) {
+  const normalized = value
+    .normalize("NFC")
+    .replace(/[—–−]/g, "-")
+    .replace(/[“”]/g, '"')
+    .replace(/[‘’]/g, "'");
+  let out = "";
+  for (const char of normalized) {
+    const key = `${font.name}:${char}`;
+    let ok = encodable.get(key);
+    if (ok === undefined) {
+      try {
+        font.encodeText(char);
+        ok = true;
+      } catch {
+        ok = false;
+      }
+      encodable.set(key, ok);
+    }
+    if (ok) out += char;
+  }
+  return out;
+}
+
 function clip(font: PDFFont, value: string, size: number, max: number) {
-  const source = value.replace(/[^\u0000-\u00FF]/g, " ");
+  const source = prepare(font, value);
   if (textWidth(font, source, size) <= max) return source;
   let next = source;
   while (next.length > 1 && textWidth(font, `${next}...`, size) > max) {
     next = next.slice(0, -1);
   }
   return `${next}...`;
+}
+
+function wrap(font: PDFFont, value: string, size: number, max: number) {
+  const lines: string[] = [];
+  let line = "";
+
+  const push = () => {
+    if (line) lines.push(line);
+    line = "";
+  };
+
+  for (const word of prepare(font, value).split(/\s+/).filter(Boolean)) {
+    const candidate = line ? `${line} ${word}` : word;
+    if (line && textWidth(font, candidate, size) > max) {
+      push();
+      line = word;
+    } else {
+      line = candidate;
+    }
+    while (textWidth(font, line, size) > max && line.length > 1) {
+      let cut = line.length - 1;
+      while (cut > 1 && textWidth(font, line.slice(0, cut), size) > max) cut -= 1;
+      lines.push(line.slice(0, cut));
+      line = line.slice(cut);
+    }
+  }
+  push();
+
+  return lines.length ? lines : [""];
 }
 
 export async function buildReportPdf(input: {
@@ -95,45 +158,58 @@ export async function buildReportPdf(input: {
   const pageSize: [number, number] = [595.28, 841.89];
   let page = doc.addPage(pageSize);
   let { width, height } = page.getSize();
-  let y = height - 36;
+  let y = height - 56;
+  const contentWidth = width - 72;
 
-  const ensure = (need: number) => {
+  const draw = (
+    value: string,
+    options: { x: number; y: number; size: number; font: PDFFont; color: RGB },
+  ) => {
+    page.drawText(prepare(options.font, value), options);
+  };
+
+  const topBar = () => {
+    page.drawRectangle({ x: 0, y: height - 28, width, height: 28, color: TEAL });
+    draw("MOB  ·  Método de Ovulação Billings", {
+      x: 36,
+      y: height - 18,
+      size: 10,
+      font: bold,
+      color: rgb(1, 1, 1),
+    });
+  };
+
+  const ensure = (need: number, onBreak?: () => void) => {
     if (y - need < 42) {
       page = doc.addPage(pageSize);
       ({ width, height } = page.getSize());
-      y = height - 42;
+      topBar();
+      y = height - 56;
+      onBreak?.();
     }
   };
 
-  page.drawRectangle({ x: 0, y: height - 28, width, height: 28, color: TEAL });
-  page.drawText("MOB  ·  Metodo de Ovulacao Billings", {
-    x: 36,
-    y: height - 18,
-    size: 10,
-    font: bold,
-    color: rgb(1, 1, 1),
-  });
+  topBar();
 
-  y = height - 56;
-  page.drawText("Relatorio de anotacoes", { x: 36, y, size: 18, font: bold, color: INK });
+  draw("Relatório de anotações", { x: 36, y, size: 18, font: bold, color: INK });
   y -= 18;
-  page.drawText(input.name, { x: 36, y, size: 11, font, color: MUTED });
+  draw(input.name, { x: 36, y, size: 11, font, color: MUTED });
   y -= 14;
-  page.drawText(formatRange(input.from, input.to), { x: 36, y, size: 11, font, color: MUTED });
+  draw(formatRange(input.from, input.to).replace(/\./g, ""), { x: 36, y, size: 11, font, color: MUTED });
   y -= 14;
-  page.drawText(`${input.entries.length} dia(s) anotado(s)`, { x: 36, y, size: 10, font, color: MUTED });
+  draw(`${input.entries.length} dia(s) anotado(s)`, { x: 36, y, size: 10, font, color: MUTED });
   y -= 18;
 
   if (input.entries.length) {
-    page.drawText("Grafico do periodo", { x: 36, y, size: 11, font: bold, color: TEAL });
+    draw("Gráfico do período", { x: 36, y, size: 11, font: bold, color: TEAL });
     y -= 10;
     let x = 36;
     const stampSize = 16;
     for (const entry of input.entries) {
       if (x + stampSize > width - 36) {
         x = 36;
-        y -= stampSize + 4;
         ensure(stampSize + 8);
+        y -= stampSize + 4;
       }
       drawStamp(page, x, y - stampSize, stampSize, entry.stamp);
       x += stampSize + 3;
@@ -142,24 +218,24 @@ export async function buildReportPdf(input: {
   }
 
   ensure(70);
-  page.drawText("Anotacoes", { x: 36, y, size: 11, font: bold, color: TEAL });
+  draw("Anotações", { x: 36, y, size: 11, font: bold, color: TEAL });
   y -= 16;
 
   const columns = [
     { label: "Dia", x: 36, w: 28 },
     { label: "Data", x: 66, w: 78 },
-    { label: "Selo", x: 148, w: 72 },
-    { label: "Sinto", x: 224, w: 78 },
-    { label: "Vejo", x: 306, w: 86 },
-    { label: "Rel.", x: 396, w: 28 },
-    { label: "Apice", x: 426, w: 36 },
-    { label: "Nota", x: 466, w: 93 },
+    { label: "Selo", x: 148, w: 58 },
+    { label: "Sinto", x: 210, w: 78 },
+    { label: "Vejo", x: 292, w: 86 },
+    { label: "Rel.", x: 382, w: 28 },
+    { label: "Ápice", x: 414, w: 36 },
+    { label: "Nota", x: 454, w: 105 },
   ];
 
   const header = () => {
     page.drawRectangle({ x: 32, y: y - 4, width: width - 64, height: 16, color: CREAM });
     for (const col of columns) {
-      page.drawText(col.label, { x: col.x, y, size: 8, font: bold, color: MUTED });
+      draw(col.label, { x: col.x, y, size: 8, font: bold, color: MUTED });
     }
     y -= 16;
   };
@@ -167,43 +243,41 @@ export async function buildReportPdf(input: {
   header();
 
   if (!input.entries.length) {
-    page.drawText("Nenhuma anotacao neste periodo.", { x: 36, y, size: 10, font, color: MUTED });
+    draw("Nenhuma anotação neste período.", { x: 36, y, size: 10, font, color: MUTED });
     y -= 20;
   }
 
   for (const entry of input.entries) {
-    ensure(36);
-    if (y < 64) {
-      page = doc.addPage(pageSize);
-      ({ width, height } = page.getSize());
-      y = height - 42;
-      header();
-    }
+    const noteLines = wrap(font, entry.notes.trim() || "-", 8, columns[7].w - 4);
+    const rowH = Math.max(16, 6 + noteLines.length * 10);
+    ensure(rowH + 6, header);
 
     drawStamp(page, 36, y - 3, 10, entry.stamp);
     const shortDate = entry.date.split("-").reverse().join("/");
     const values = [
       String(entry.cycleDay ?? "-"),
       shortDate,
-      STAMP_META[entry.stamp].short,
+      PDF_STAMP_SHORT[entry.stamp],
       entry.sensation ? SENSATION_META[entry.sensation].label : "-",
       entry.mucus && entry.mucus !== "NONE" ? MUCUS_META[entry.mucus].label : "-",
       entry.intercourse ? "sim" : "-",
       entry.peak ? "sim" : "-",
-      entry.notes.trim() || "-",
     ];
 
     values.forEach((value, index) => {
       const col = columns[index];
-      page.drawText(clip(font, value, 8, col.w - 4), {
+      draw(clip(font, value, 8, col.w - 4), {
         x: index === 0 ? 50 : col.x,
         y,
         size: 8,
         font,
-      color: INK,
+        color: INK,
+      });
     });
+    noteLines.forEach((line, index) => {
+      draw(line, { x: columns[7].x, y: y - index * 10, size: 8, font, color: INK });
     });
-    y -= 16;
+    y -= rowH;
     page.drawLine({
       start: { x: 32, y: y + 10 },
       end: { x: width - 32, y: y + 10 },
@@ -214,49 +288,59 @@ export async function buildReportPdf(input: {
 
   y -= 18;
   ensure(120);
-  page.drawText("Cores e simbolos", { x: 36, y, size: 11, font: bold, color: TEAL });
+  draw("Cores e símbolos", { x: 36, y, size: 11, font: bold, color: TEAL });
   y -= 18;
   (Object.keys(STAMP_META) as StampType[]).forEach((stamp) => {
-    ensure(22);
+    const lines = wrap(font, `${STAMP_META[stamp].label}  -  ${STAMP_META[stamp].description}`, 8, contentWidth - 22);
+    ensure(8 + lines.length * 12);
     drawStamp(page, 36, y - 4, 12, stamp);
-    page.drawText(`${STAMP_META[stamp].label}  —  ${STAMP_META[stamp].description}`, {
-      x: 54,
-      y,
-      size: 8,
-      font,
-      color: INK,
+    lines.forEach((line, index) => {
+      draw(line, { x: 54, y: y - index * 11, size: 8, font, color: INK });
     });
-    y -= 16;
+    y -= Math.max(16, lines.length * 11 + 4);
   });
 
   y -= 8;
   ensure(90);
-  page.drawText("Como anotar", { x: 36, y, size: 11, font: bold, color: TEAL });
+  draw("Como anotar", { x: 36, y, size: 11, font: bold, color: TEAL });
   y -= 14;
   ANNOTATION_TIPS.forEach((tip) => {
-    ensure(14);
-    page.drawText(`•  ${tip}`, { x: 36, y, size: 8, font, color: INK });
-    y -= 12;
+    const lines = wrap(font, `•  ${tip}`, 8, contentWidth);
+    ensure(4 + lines.length * 12);
+    lines.forEach((line) => {
+      draw(line, { x: 36, y, size: 8, font, color: INK });
+      y -= 12;
+    });
   });
 
   y -= 8;
   ensure(110);
-  page.drawText("Regras do metodo", { x: 36, y, size: 11, font: bold, color: TEAL });
+  draw("Regras do método", { x: 36, y, size: 11, font: bold, color: TEAL });
   y -= 14;
   BILLINGS_RULES.forEach((rule) => {
-    ensure(28);
-    page.drawText(`Regra ${rule.number}  ${rule.title}`, { x: 36, y, size: 8, font: bold, color: INK });
+    const lines = wrap(font, rule.text, 8, contentWidth);
+    ensure(22 + lines.length * 11);
+    draw(`Regra ${rule.number}  ${rule.title}`, { x: 36, y, size: 8, font: bold, color: INK });
     y -= 11;
-    page.drawText(rule.text, { x: 36, y, size: 8, font, color: MUTED });
-    y -= 14;
+    lines.forEach((line) => {
+      draw(line, { x: 36, y, size: 8, font, color: MUTED });
+      y -= 11;
+    });
+    y -= 4;
   });
 
   y -= 6;
-  ensure(28);
-  page.drawText(
-    "Material de apoio as anotacoes. Nao substitui o acompanhamento com instrutora credenciada.",
-    { x: 36, y, size: 7, font, color: MUTED },
+  const disclaimer = wrap(
+    font,
+    "Material de apoio às anotações. Não substitui o acompanhamento com instrutora credenciada.",
+    7,
+    contentWidth,
   );
+  ensure(8 + disclaimer.length * 10);
+  disclaimer.forEach((line) => {
+    draw(line, { x: 36, y, size: 7, font, color: MUTED });
+    y -= 10;
+  });
 
   return Buffer.from(await doc.save());
 }
