@@ -61,7 +61,7 @@ export function LoginForm() {
         {pending ? "Entrando..." : "Entrar"}
       </button>
       <p className="text-center text-sm text-muted">
-        <Link href="/recuperar-senha" className="text-teal underline-offset-2 hover:underline">
+        <Link href="/recuperar-senha" className="text-teal-dark underline-offset-4 hover:underline">
           Esqueci a senha
         </Link>
       </p>

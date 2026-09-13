@@ -83,11 +83,11 @@ export function DayEditor({
         role="dialog"
         aria-modal="true"
         aria-labelledby="anotar-titulo"
-        className="relative z-10 max-h-[92dvh] w-full max-w-xl overflow-y-auto rounded-t-3xl bg-white p-5 shadow-2xl sm:rounded-3xl sm:p-6"
+        className="card relative z-10 max-h-[92dvh] w-full max-w-xl overflow-y-auto rounded-t-3xl p-6 sm:rounded-3xl sm:p-8"
       >
         <div className="mb-4 flex items-start justify-between gap-3">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.18em] text-pink">Anotação</p>
+            <p className="text-sm text-muted">Anotação</p>
             <h2 id="anotar-titulo" className="font-display text-2xl text-teal-dark">
               {currentDate === today ? "Hoje" : formatLong(currentDate)}
             </h2>

@@ -43,11 +43,11 @@ export function CycleBoard({
 
   return (
     <>
-      <section className="overflow-hidden rounded-3xl bg-white shadow-[0_20px_50px_rgba(31,51,52,0.08)]">
-        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line px-5 py-5 sm:px-6">
+      <section className="card overflow-hidden">
+        <div className="flex flex-wrap items-end justify-between gap-4 border-b border-line px-6 py-6 sm:px-8">
           <div>
-            <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal">Ciclo atual</p>
-            <h1 className="font-display text-2xl text-teal-dark sm:text-3xl">
+            <p className="text-sm text-muted">Ciclo atual</p>
+            <h1 className="font-display text-3xl text-teal-dark">
               {startDate ? `Desde ${formatDay(startDate)}` : "Comece pelo dia de hoje"}
             </h1>
           </div>
@@ -58,7 +58,7 @@ export function CycleBoard({
         </div>
 
         {dates.length ? (
-          <div className="space-y-5 px-5 py-5 sm:px-6">
+          <div className="space-y-6 px-6 py-6 sm:px-8">
             <div className="flex gap-2 overflow-x-auto pb-1" role="list" aria-label="Selos do ciclo">
               {dates.map((date, index) => {
                 const entry = byDate.get(date);
@@ -131,13 +131,13 @@ export function CycleBoard({
             </ul>
           </div>
         ) : (
-          <div className="px-5 py-12 text-center sm:px-6">
+          <div className="px-6 py-14 text-center sm:px-8">
             <div className="mx-auto mb-4 flex justify-center gap-2">
               <Stamp type="DRY" />
               <Stamp type="FERTILE" />
               <Stamp type="MENSTRUATION" />
             </div>
-            <p className="font-display text-xl text-teal-dark">Nenhuma anotação ainda</p>
+            <p className="font-display text-2xl text-teal-dark">Nenhuma anotação ainda</p>
             <p className="mx-auto mt-1 max-w-sm text-sm text-muted">
               Um toque por dia. O gráfico se monta sozinho.
             </p>
@@ -178,7 +178,7 @@ function detailLine(entry: DayEntryView) {
 function Stat({ label, value }: { label: string; value: string | number }) {
   return (
     <div className="bg-white px-4 py-3">
-      <dt className="text-[11px] font-semibold uppercase tracking-[0.16em] text-muted">{label}</dt>
+      <dt className="text-sm text-muted">{label}</dt>
       <dd className="font-display text-xl text-teal-dark">{value}</dd>
     </div>
   );

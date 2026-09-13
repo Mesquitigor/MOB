@@ -68,7 +68,7 @@ export function Stamp({ type, size = "md", selected, className }: StampProps) {
   return (
     <span
       className={cn(
-        "inline-flex shrink-0 items-center justify-center rounded-xl shadow-[0_8px_18px_rgba(31,51,52,0.12)] ring-2 ring-transparent",
+        "inline-flex shrink-0 items-center justify-center rounded-2xl ring-2 ring-transparent",
         sizes[size],
         selected && "ring-teal ring-offset-2 ring-offset-cream",
         className,
@@ -76,7 +76,7 @@ export function Stamp({ type, size = "md", selected, className }: StampProps) {
       style={{
         background: meta.color,
         boxShadow: outlined
-          ? "inset 0 0 0 1.5px #14686E, 0 8px 18px rgba(31,51,52,0.08)"
+          ? "inset 0 0 0 1.5px #6E4450"
           : undefined,
       }}
       aria-hidden="true"

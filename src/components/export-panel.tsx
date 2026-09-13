@@ -109,8 +109,8 @@ export function ExportPanel({
   ];
 
   return (
-    <section className="max-w-xl rounded-3xl bg-white p-5 shadow-[0_20px_50px_rgba(31,51,52,0.08)] sm:p-6">
-      <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal">Relatório</p>
+    <section className="card max-w-xl p-6 sm:p-8">
+      <p className="text-sm text-muted">Relatório</p>
       <h1 className="font-display text-3xl text-teal-dark">Exportar anotações</h1>
       <p className="mt-1 text-sm text-muted">PDF do período, ou envio direto para {email}.</p>
 

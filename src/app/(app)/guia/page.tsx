@@ -3,9 +3,9 @@ import { ANNOTATION_TIPS, BILLINGS_RULES, MUCUS_META, SENSATION_META, STAMP_TYPE
 
 export default function GuidePage() {
   return (
-    <div className="mx-auto max-w-3xl space-y-6">
-      <section className="rounded-3xl bg-white p-6 shadow-[0_20px_50px_rgba(31,51,52,0.08)]">
-        <p className="text-xs font-semibold uppercase tracking-[0.2em] text-teal">Guia rápido</p>
+    <div className="mx-auto max-w-3xl space-y-5">
+      <section className="card p-6 sm:p-8">
+        <p className="text-sm text-muted">Guia</p>
         <h1 className="font-display text-3xl text-teal-dark">Como anotar</h1>
         <ul className="mt-4 grid gap-3 sm:grid-cols-2">
           {ANNOTATION_TIPS.map((tip) => (
@@ -16,7 +16,7 @@ export default function GuidePage() {
         </ul>
       </section>
 
-      <section className="rounded-3xl bg-white p-6 shadow-[0_20px_50px_rgba(31,51,52,0.08)]">
+      <section className="card p-6 sm:p-8">
         <h2 className="font-display text-2xl text-teal-dark">Cores e símbolos</h2>
         <div className="mt-4 grid gap-4 sm:grid-cols-2">
           {STAMP_TYPES.map((type) => (
@@ -26,7 +26,7 @@ export default function GuidePage() {
       </section>
 
       <section className="grid gap-4 md:grid-cols-2">
-        <div className="rounded-3xl bg-white p-6 shadow-[0_20px_50px_rgba(31,51,52,0.08)]">
+        <div className="card p-6 sm:p-8">
           <h2 className="font-display text-2xl text-teal-dark">O que sinto</h2>
           <ul className="mt-3 space-y-2 text-sm">
             {Object.values(SENSATION_META).map((item) => (
@@ -37,7 +37,7 @@ export default function GuidePage() {
             ))}
           </ul>
         </div>
-        <div className="rounded-3xl bg-white p-6 shadow-[0_20px_50px_rgba(31,51,52,0.08)]">
+        <div className="card p-6 sm:p-8">
           <h2 className="font-display text-2xl text-teal-dark">O que vejo</h2>
           <ul className="mt-3 space-y-2 text-sm">
             {Object.values(MUCUS_META).map((item) => (
@@ -50,7 +50,7 @@ export default function GuidePage() {
         </div>
       </section>
 
-      <section className="rounded-3xl bg-white p-6 shadow-[0_20px_50px_rgba(31,51,52,0.08)]">
+      <section className="card p-6 sm:p-8">
         <h2 className="font-display text-2xl text-teal-dark">Quatro regras</h2>
         <ol className="mt-4 grid gap-3">
           {BILLINGS_RULES.map((rule) => (

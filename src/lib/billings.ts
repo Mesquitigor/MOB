@@ -87,7 +87,7 @@ export const STAMP_META: Record<
   },
   FERTILE: {
     label: "Fértil",
-    short: "RICA",
+    short: "FÉRTIL",
     color: "#FFFDF8",
     ink: "#1F3334",
     symbol: "baby",

@@ -23,6 +23,7 @@ export function AppShell({
 }) {
   const pathname = usePathname();
   const first = name.trim().charAt(0).toUpperCase() || "M";
+  const firstName = name.split(" ")[0];
 
   return (
     <div className="min-h-dvh bg-cream text-ink">
@@ -33,8 +34,8 @@ export function AppShell({
         Ir para o conteúdo
       </a>
       <div className="flex min-h-dvh">
-        <aside className="hidden w-[88px] shrink-0 flex-col items-center bg-teal-dark py-5 text-white md:flex">
-          <Link href="/diario" aria-label="MOB, ir ao diário" className="mb-8">
+        <aside className="hidden w-24 shrink-0 flex-col items-center border-r border-line/80 bg-white/70 py-6 md:flex">
+          <Link href="/diario" aria-label="MOB, ir ao diário" className="mb-10">
             <Logo className="h-10 w-10" />
           </Link>
           <nav aria-label="Principal" className="flex flex-1 flex-col items-center gap-2">
@@ -47,8 +48,8 @@ export function AppShell({
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex h-12 w-12 items-center justify-center rounded-2xl transition",
-                    active ? "bg-white/15 text-white" : "text-white/70 hover:bg-white/10 hover:text-white",
+                    "flex h-12 w-12 items-center justify-center rounded-full transition",
+                    active ? "bg-teal text-white" : "text-muted hover:bg-cream hover:text-ink",
                   )}
                   title={item.label}
                 >
@@ -61,7 +62,7 @@ export function AppShell({
           <form action={logoutAction}>
             <button
               type="submit"
-              className="flex h-12 w-12 items-center justify-center rounded-2xl text-white/70 transition hover:bg-white/10 hover:text-white"
+              className="flex h-12 w-12 items-center justify-center rounded-full text-muted transition hover:bg-cream hover:text-ink"
               aria-label="Sair"
             >
               <LogOut className="h-5 w-5" />
@@ -70,29 +71,24 @@ export function AppShell({
         </aside>
 
         <div className="flex min-w-0 flex-1 flex-col">
-          <header className="flex items-center justify-between gap-4 px-4 py-4 sm:px-8">
+          <header className="flex items-center justify-between gap-4 px-5 py-6 sm:px-10">
             <div className="flex items-center gap-3">
-              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-teal text-lg font-semibold text-white md:hidden">
-                {first}
-              </div>
-              <div className="hidden h-12 w-12 items-center justify-center rounded-full bg-teal text-lg font-semibold text-white md:flex">
+              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-teal/15 text-base font-medium text-teal-dark">
                 {first}
               </div>
               <div>
-                <p className="font-display text-lg leading-tight text-teal-dark sm:text-xl">
-                  Olá {name.split(" ")[0]}, bom te ver aqui.
-                </p>
+                <p className="font-display text-xl text-teal-dark sm:text-2xl">Olá, {firstName}.</p>
                 <p className="text-sm text-muted">Anote à noite. Primeiro o que sente, depois o que vê.</p>
               </div>
             </div>
             <Link
               href="/configuracoes"
-              className="hidden rounded-full border border-line bg-white px-4 py-2 text-sm font-medium text-ink shadow-sm hover:border-teal/40 md:inline-flex"
+              className="hidden rounded-full border border-line bg-white px-4 py-2 text-sm text-ink hover:border-teal/40 md:inline-flex"
             >
               Conta
             </Link>
           </header>
-          <main id="conteudo" className="flex-1 px-4 pb-24 sm:px-8 md:pb-10">
+          <main id="conteudo" className="flex-1 px-5 pb-24 sm:px-10 md:pb-12">
             {children}
           </main>
         </div>
@@ -100,7 +96,7 @@ export function AppShell({
 
       <nav
         aria-label="Principal móvel"
-        className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/95 px-2 py-2 backdrop-blur md:hidden"
+        className="fixed inset-x-0 bottom-0 z-40 border-t border-line bg-white/90 px-3 py-2 backdrop-blur md:hidden"
       >
         <ul className="grid grid-cols-4">
           {NAV.map((item) => {
@@ -112,8 +108,8 @@ export function AppShell({
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex flex-col items-center gap-1 rounded-2xl px-2 py-1.5 text-[11px] font-medium",
-                    active ? "text-teal" : "text-muted",
+                    "flex flex-col items-center gap-1 rounded-full px-2 py-1.5 text-[11px]",
+                    active ? "text-teal-dark" : "text-muted",
                   )}
                 >
                   <Icon className="h-5 w-5" aria-hidden="true" />
