@@ -36,7 +36,7 @@ export function AppShell({
       <div className="flex min-h-dvh">
         <aside className="hidden w-24 shrink-0 flex-col items-center border-r border-line/80 bg-white/70 py-6 md:flex">
           <Link href="/diario" aria-label="MOB, ir ao diário" className="mb-10">
-            <Logo className="h-10 w-10" />
+            <Logo />
           </Link>
           <nav aria-label="Principal" className="flex flex-1 flex-col items-center gap-2">
             {NAV.map((item) => {
@@ -72,13 +72,13 @@ export function AppShell({
 
         <div className="flex min-w-0 flex-1 flex-col">
           <header className="flex items-center justify-between gap-4 px-5 py-6 sm:px-10">
-            <div className="flex items-center gap-3">
-              <div className="flex h-11 w-11 items-center justify-center rounded-full bg-teal/15 text-base font-medium text-teal-dark">
+            <div className="flex items-center gap-3.5">
+              <div className="flex h-12 w-12 items-center justify-center rounded-full bg-teal/15 text-lg font-medium text-teal-dark">
                 {first}
               </div>
               <div>
-                <p className="font-display text-xl text-teal-dark sm:text-2xl">Olá, {firstName}.</p>
-                <p className="text-sm text-muted">Anote à noite. Primeiro o que sente, depois o que vê.</p>
+                <p className="font-display text-2xl text-teal-dark">Olá, {firstName}.</p>
+                <p className="text-sm leading-relaxed text-muted">Anote à noite. Primeiro o que sente, depois o que vê.</p>
               </div>
             </div>
             <Link
@@ -108,7 +108,7 @@ export function AppShell({
                   href={item.href}
                   aria-current={active ? "page" : undefined}
                   className={cn(
-                    "flex flex-col items-center gap-1 rounded-full px-2 py-1.5 text-[11px]",
+                    "flex flex-col items-center gap-1 rounded-full px-2 py-1.5 text-xs",
                     active ? "text-teal-dark" : "text-muted",
                   )}
                 >

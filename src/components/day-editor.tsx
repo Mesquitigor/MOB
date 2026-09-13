@@ -134,7 +134,7 @@ export function DayEditor({
                     )}
                   >
                     <Stamp type={type} size="md" selected={selected} />
-                    <span className="text-[11px] font-semibold leading-tight">
+                    <span className="text-xs font-semibold leading-tight">
                       {STAMP_META[type].label}
                     </span>
                   </button>
