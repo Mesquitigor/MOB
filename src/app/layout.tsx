@@ -13,6 +13,10 @@ export const metadata: Metadata = {
     template: "%s · MOB",
   },
   description: "Anotações diárias do Método de Ovulação Billings, exportação em PDF e envio por e-mail.",
+  icons: {
+    icon: [{ url: "/icon.png", type: "image/png", sizes: "32x32" }],
+    apple: [{ url: "/apple-icon.png", sizes: "180x180", type: "image/png" }],
+  },
 };
 
 export default function RootLayout({ children }: LayoutProps<"/">) {
