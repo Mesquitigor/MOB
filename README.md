@@ -40,18 +40,20 @@ SQLite não funciona na Vercel (disco somente leitura). É preciso um Postgres e
 
 ## E-mail (recuperar senha e relatório em PDF)
 
-Preencha no `.env` (e nas variáveis da Vercel, se for enviar de produção):
+Preencha no `.env` (local) e em Environment Variables na Vercel (produção). Com Gmail:
 
 ```
-SMTP_HOST=
+SMTP_HOST=smtp.gmail.com
 SMTP_PORT=587
-SMTP_USER=
-SMTP_PASS=
-SMTP_FROM=
+SMTP_USER=voce@gmail.com
+SMTP_PASS=senha-de-app-de-16-letras
+SMTP_FROM=MOB <voce@gmail.com>
 APP_URL=http://localhost:3000
 ```
 
-Sem SMTP, a recuperação de senha mostra o link na tela e o envio do PDF pede a configuração do correio.
+`SMTP_PASS` é uma **senha de app** do Google, não a senha da conta. Gere em [myaccount.google.com/apppasswords](https://myaccount.google.com/apppasswords) com a verificação em duas etapas ligada.
+
+Sem SMTP o app continua funcionando: a recuperação de senha mostra o link direto na tela e o relatório fica disponível em **Baixar PDF**.
 
 ## Anotações
 

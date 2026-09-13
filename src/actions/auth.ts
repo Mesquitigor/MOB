@@ -133,7 +133,7 @@ export async function forgotPasswordAction(_prev: AuthState, formData: FormData)
     }
 
     return {
-      message: "O envio de e-mail ainda não está configurado neste ambiente. Use o link abaixo para redefinir a senha.",
+      message: "O envio por e-mail ainda não está ligado. Use o link abaixo para criar uma nova senha (vale por 1 hora).",
       resetLink,
     };
   } catch (error) {

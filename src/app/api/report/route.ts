@@ -24,7 +24,7 @@ export async function POST(request: Request) {
     return NextResponse.json(
       {
         error:
-          "Configure SMTP_HOST, SMTP_USER e SMTP_PASS no .env para enviar o relatório por e-mail.",
+          "O envio por e-mail ainda não está ligado. Use Baixar PDF por enquanto.",
       },
       { status: 503 },
     );
