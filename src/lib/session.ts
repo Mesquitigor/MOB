@@ -1,6 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
-import { authSecret } from "@/lib/env";
+import { authSecret, emailAllowed } from "@/lib/env";
 
 export const SESSION_COOKIE = "mob_session";
 
@@ -31,6 +31,9 @@ export async function readSessionToken(token: string) {
   try {
     const { payload } = await jwtVerify(token, secret());
     if (!payload.sub || typeof payload.name !== "string" || typeof payload.email !== "string") {
+      return null;
+    }
+    if (!emailAllowed(payload.email)) {
       return null;
     }
     return {

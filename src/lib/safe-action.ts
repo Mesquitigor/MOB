@@ -1,4 +1,4 @@
-import { authSecret, databaseConfigured } from "@/lib/env";
+import { allowlistConfigured, authSecret, databaseConfigured } from "@/lib/env";
 
 export type AuthState = {
   error?: string;
@@ -17,6 +17,12 @@ export async function envConfigError(): Promise<AuthState | null> {
     return {
       error:
         "O cadastro precisa de um PostgreSQL. Na Vercel, crie um banco em Storage e conecte ao projeto (DATABASE_URL).",
+    };
+  }
+  if (!allowlistConfigured()) {
+    return {
+      error:
+        "Nenhum e-mail liberado. Defina ALLOWED_EMAILS na Vercel e publique um deploy novo.",
     };
   }
   return null;

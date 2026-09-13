@@ -39,3 +39,20 @@ export function databaseConfigured() {
 export function authSecret() {
   return clean(process.env.AUTH_SECRET);
 }
+
+export function allowedEmails() {
+  return new Set(
+    clean(process.env.ALLOWED_EMAILS)
+      .split(",")
+      .map((item) => item.trim().toLowerCase())
+      .filter(Boolean),
+  );
+}
+
+export function emailAllowed(email: string) {
+  return allowedEmails().has(email.trim().toLowerCase());
+}
+
+export function allowlistConfigured() {
+  return allowedEmails().size > 0;
+}

@@ -2,6 +2,7 @@
 
 import { redirect } from "next/navigation";
 import { getPrisma } from "@/lib/db";
+import { emailAllowed } from "@/lib/env";
 import { canSendEmail, sendMail, appUrl } from "@/lib/email";
 import { createResetToken, hashPassword, hashToken, verifyPassword } from "@/lib/password";
 import { asAuthError, envConfigError, type AuthState } from "@/lib/safe-action";
@@ -23,6 +24,10 @@ export async function registerAction(_prev: AuthState, formData: FormData): Prom
 
   if (!name || !email || !password) {
     return { error: "Preencha nome, e-mail e senha." };
+  }
+
+  if (!emailAllowed(email)) {
+    return { error: "Este e-mail não está liberado. Peça o convite a quem administra o app." };
   }
 
   try {
@@ -61,6 +66,10 @@ export async function loginAction(_prev: AuthState, formData: FormData): Promise
     return { error: "Informe e-mail e senha." };
   }
 
+  if (!emailAllowed(email)) {
+    return { error: "Este e-mail não tem mais acesso." };
+  }
+
   try {
     const prisma = getPrisma();
     const user = await prisma.user.findUnique({ where: { email } });
@@ -94,7 +103,7 @@ export async function forgotPasswordAction(_prev: AuthState, formData: FormData)
     const user = await prisma.user.findUnique({ where: { email } });
     const generic = "Se este e-mail estiver cadastrado, você poderá redefinir a senha.";
 
-    if (!user) {
+    if (!user || !emailAllowed(user.email)) {
       return { message: generic };
     }
 
@@ -154,6 +163,10 @@ export async function resetPasswordAction(_prev: AuthState, formData: FormData):
       return { error: "Este link expirou. Peça um novo." };
     }
 
+    if (!emailAllowed(record.user.email)) {
+      return { error: "Este e-mail não tem mais acesso." };
+    }
+
     await prisma.$transaction([
       prisma.user.update({
         where: { id: record.userId },
@@ -178,6 +191,9 @@ export async function updateProfileAction(_prev: AuthState, formData: FormData):
   const name = asText(formData.get("name"));
   const email = asText(formData.get("email"));
   if (!name || !email) return { error: "Nome e e-mail são obrigatórios." };
+  if (!emailAllowed(email)) {
+    return { error: "Este e-mail não está liberado. Peça o convite a quem administra o app." };
+  }
 
   try {
     const prisma = getPrisma();

@@ -16,7 +16,17 @@ npm run dev
 
 Abra [http://localhost:3000](http://localhost:3000).
 
-Cadastro: nome, e-mail e senha, sem confirmação de e-mail. O login só funciona com a senha gravada. Marque **Lembrar de mim** para manter a sessão por 30 dias.
+Cadastro: nome, e-mail e senha, sem confirmação de e-mail. Só entram e-mails listados em `ALLOWED_EMAILS`. Marque **Lembrar de mim** para manter a sessão por 30 dias.
+
+## Quem pode entrar
+
+O app é fechado. Defina os e-mails liberados, separados por vírgula:
+
+```
+ALLOWED_EMAILS=voce@exemplo.com,outra@exemplo.com
+```
+
+Sem essa variável (ou com ela vazia), ninguém cria conta e ninguém entra. Para liberar alguém: edite a lista, salve e faça **Redeploy**. A pessoa cadastra em `/cadastrar` — o link não aparece na tela de login. Remover um e-mail tira o acesso no clique seguinte, mesmo com sessão ativa.
 
 ## Deploy na Vercel
 
@@ -25,7 +35,8 @@ SQLite não funciona na Vercel (disco somente leitura). É preciso um Postgres e
 1. No projeto da Vercel, abra **Storage** → **Create Database** → **Postgres** e conecte ao projeto.
 2. Em **Settings → Environment Variables**, confira se existe `DATABASE_URL` (ou `POSTGRES_URL`) começando com `postgres`. Aplique em Production, Preview e Development.
 3. Adicione `AUTH_SECRET` com uma chave longa (`openssl rand -base64 48`).
-4. **Redeploy** o último deployment. Sem o banco, o site sobe, mas o cadastro não grava usuário.
+4. Adicione `ALLOWED_EMAILS` com o seu e-mail (e os demais) **antes** do deploy, senão nem você entra.
+5. **Redeploy** o último deployment. Sem o banco, o site sobe, mas o cadastro não grava usuário.
 
 ## E-mail (recuperar senha e relatório em PDF)
 
