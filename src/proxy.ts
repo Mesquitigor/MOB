@@ -1,6 +1,7 @@
 import type { NextRequest } from "next/server";
 import { NextResponse } from "next/server";
 import { jwtVerify } from "jose";
+import { authSecret } from "@/lib/env";
 import { SESSION_COOKIE } from "@/lib/session";
 
 const PUBLIC = new Set([
@@ -11,7 +12,7 @@ const PUBLIC = new Set([
 ]);
 
 function secret() {
-  return new TextEncoder().encode(process.env.AUTH_SECRET || "");
+  return new TextEncoder().encode(authSecret());
 }
 
 export async function proxy(request: NextRequest) {
@@ -19,7 +20,7 @@ export async function proxy(request: NextRequest) {
   const token = request.cookies.get(SESSION_COOKIE)?.value;
   let authenticated = false;
 
-  if (token && process.env.AUTH_SECRET) {
+  if (token && authSecret()) {
     try {
       await jwtVerify(token, secret());
       authenticated = true;

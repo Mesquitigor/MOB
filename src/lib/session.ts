@@ -1,5 +1,6 @@
 import { SignJWT, jwtVerify } from "jose";
 import { cookies } from "next/headers";
+import { authSecret } from "@/lib/env";
 
 export const SESSION_COOKIE = "mob_session";
 
@@ -10,7 +11,7 @@ export type SessionUser = {
 };
 
 function secret() {
-  const value = process.env.AUTH_SECRET;
+  const value = authSecret();
   if (!value) {
     throw new Error("AUTH_SECRET ausente no ambiente.");
   }

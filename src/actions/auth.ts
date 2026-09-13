@@ -14,7 +14,7 @@ function asText(value: FormDataEntryValue | null) {
 }
 
 export async function registerAction(_prev: AuthState, formData: FormData): Promise<AuthState> {
-  const configError = envConfigError();
+  const configError = await envConfigError();
   if (configError) return configError;
 
   const name = asText(formData.get("name"));
@@ -50,7 +50,7 @@ export async function registerAction(_prev: AuthState, formData: FormData): Prom
 }
 
 export async function loginAction(_prev: AuthState, formData: FormData): Promise<AuthState> {
-  const configError = envConfigError();
+  const configError = await envConfigError();
   if (configError) return configError;
 
   const email = asText(formData.get("email"));
@@ -83,7 +83,7 @@ export async function logoutAction() {
 }
 
 export async function forgotPasswordAction(_prev: AuthState, formData: FormData): Promise<AuthState> {
-  const configError = envConfigError();
+  const configError = await envConfigError();
   if (configError) return configError;
 
   const email = asText(formData.get("email"));
@@ -133,7 +133,7 @@ export async function forgotPasswordAction(_prev: AuthState, formData: FormData)
 }
 
 export async function resetPasswordAction(_prev: AuthState, formData: FormData): Promise<AuthState> {
-  const configError = envConfigError();
+  const configError = await envConfigError();
   if (configError) return configError;
 
   const token = asText(formData.get("token"));

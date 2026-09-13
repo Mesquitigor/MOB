@@ -1,4 +1,5 @@
-import { databaseConfigured } from "@/lib/env";
+import { connection } from "next/server";
+import { authSecret, databaseConfigured } from "@/lib/env";
 
 export type AuthState = {
   error?: string;
@@ -6,8 +7,9 @@ export type AuthState = {
   resetLink?: string;
 };
 
-export function envConfigError(): AuthState | null {
-  if (!process.env.AUTH_SECRET) {
+export async function envConfigError(): Promise<AuthState | null> {
+  await connection();
+  if (!authSecret()) {
     return { error: "AUTH_SECRET não está definido. Inclua essa variável na Vercel e faça um novo deploy." };
   }
   if (!databaseConfigured()) {
@@ -33,9 +35,7 @@ export function asAuthError(error: unknown): AuthState {
   if (isRedirectError(error)) throw error;
   console.error(error);
   if (error instanceof Error && error.message === "DATABASE_URL_MISSING") {
-    return envConfigError() ?? {
-      error: "O cadastro precisa de um PostgreSQL. Configure DATABASE_URL na Vercel.",
-    };
+    return { error: "O cadastro precisa de um PostgreSQL. Configure DATABASE_URL na Vercel." };
   }
   return { error: "Não foi possível concluir agora. Tente de novo em instantes." };
 }

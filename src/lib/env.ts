@@ -1,9 +1,13 @@
+export function readEnv(name: string) {
+  return (process.env[name] ?? "").trim();
+}
+
 function fromParts() {
-  const host = process.env.PGHOST || process.env.POSTGRES_HOST;
-  const user = process.env.PGUSER || process.env.POSTGRES_USER;
-  const password = process.env.PGPASSWORD || process.env.POSTGRES_PASSWORD;
-  const database = process.env.PGDATABASE || process.env.POSTGRES_DATABASE;
-  const port = process.env.PGPORT || process.env.POSTGRES_PORT || "5432";
+  const host = readEnv("PGHOST") || readEnv("POSTGRES_HOST");
+  const user = readEnv("PGUSER") || readEnv("POSTGRES_USER");
+  const password = readEnv("PGPASSWORD") || readEnv("POSTGRES_PASSWORD");
+  const database = readEnv("PGDATABASE") || readEnv("POSTGRES_DATABASE");
+  const port = readEnv("PGPORT") || readEnv("POSTGRES_PORT") || "5432";
   if (!host || !user || !database) return "";
   const auth = password
     ? `${encodeURIComponent(user)}:${encodeURIComponent(password)}`
@@ -13,13 +17,13 @@ function fromParts() {
 
 export function resolveDatabaseUrl() {
   const candidates = [
-    process.env.DATABASE_URL,
-    process.env.POSTGRES_PRISMA_URL,
-    process.env.POSTGRES_URL,
-    process.env.POSTGRES_URL_NON_POOLING,
-    process.env.DATABASE_URL_UNPOOLED,
+    readEnv("DATABASE_URL"),
+    readEnv("POSTGRES_PRISMA_URL"),
+    readEnv("POSTGRES_URL"),
+    readEnv("POSTGRES_URL_NON_POOLING"),
+    readEnv("DATABASE_URL_UNPOOLED"),
     fromParts(),
-  ].filter((value): value is string => Boolean(value));
+  ].filter(Boolean);
 
   return (
     candidates.find((url) => url.startsWith("postgres://") || url.startsWith("postgresql://")) ||
@@ -30,4 +34,8 @@ export function resolveDatabaseUrl() {
 export function databaseConfigured() {
   const url = resolveDatabaseUrl();
   return url.startsWith("postgres://") || url.startsWith("postgresql://");
+}
+
+export function authSecret() {
+  return readEnv("AUTH_SECRET");
 }
