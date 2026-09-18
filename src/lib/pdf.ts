@@ -1,6 +1,6 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
-import { degrees, PDFDocument, StandardFonts, rgb, type PDFFont, type PDFPage, type RGB } from "pdf-lib";
+import { degrees, PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage, type RGB } from "pdf-lib";
 import { STAMP_META, BILLINGS_RULES, ANNOTATION_TIPS, SENSATION_META, MUCUS_META, type DayEntryView, type StampType } from "@/lib/billings";
 import { addDaysISO, eachDate, formatDay, todayISO } from "@/lib/dates";
 import { DEFAULT_REPORT_SECTIONS, type ReportSections } from "@/lib/report";
@@ -174,6 +174,18 @@ async function embedLogo(doc: PDFDocument) {
   }
 }
 
+function drawWatermark(page: PDFPage, mark: PDFImage) {
+  const { width, height } = page.getSize();
+  const size = Math.min(width, height) * 0.58;
+  page.drawImage(mark, {
+    x: (width - size) / 2,
+    y: (height - size) / 2,
+    width: size,
+    height: size,
+    opacity: 0.1,
+  });
+}
+
 export async function buildReportPdf(input: {
   name: string;
   email: string;
@@ -214,8 +226,8 @@ export async function buildReportPdf(input: {
   for (let pageIndex = 0; pageIndex < pagesDates.length; pageIndex += 1) {
     const page = doc.addPage(LANDSCAPE);
     const { width, height } = page.getSize();
+    if (logo) drawWatermark(page, logo);
     const margin = 28;
-    const headerH = 54;
     const labelW = 78;
     const tableLeft = margin + labelW;
     const tableRight = width - margin;
@@ -224,41 +236,56 @@ export async function buildReportPdf(input: {
     const colW = tableWidth / DAYS_PER_PAGE;
     const usedWidth = colW * pagesDates[pageIndex].length;
 
+    const logoSize = 26;
+    const logoY = height - 18 - logoSize;
+    const titleSize = 13;
+    const titleY = logoY + (logoSize - titleSize) / 2 + 1;
     if (logo) {
-      page.drawImage(logo, { x: margin, y: height - 42, width: 22, height: 22 });
+      page.drawImage(logo, { x: margin, y: logoY, width: logoSize, height: logoSize });
     }
     draw(page, "MÉTODO BILLINGS", {
-      x: margin + (logo ? 28 : 0),
-      y: height - 28,
-      size: 13,
+      x: margin + (logo ? logoSize + 8 : 0),
+      y: titleY,
+      size: titleSize,
       font: bold,
       color: WINE,
     });
+
+    const userSize = 8;
+    const printSize = 7;
     const userLine = `USUÁRIO: ${input.name.toUpperCase()}`;
     const printLine = `IMPRESSO EM ${printed}`;
+    const userText = prepare(bold, userLine);
+    const printText = prepare(font, printLine);
+    const rightGap = 12;
+    const rightBlockH = rightGap + printSize;
+    const printY = logoY + (logoSize - rightBlockH) / 2;
+    const userY = printY + rightGap;
     draw(page, userLine, {
-      x: width - margin - textWidth(bold, prepare(bold, userLine), 8),
-      y: height - 22,
-      size: 8,
+      x: width - margin - textWidth(bold, userText, userSize),
+      y: userY,
+      size: userSize,
       font: bold,
       color: INK,
     });
     draw(page, printLine, {
-      x: width - margin - textWidth(font, printLine, 7),
-      y: height - 34,
-      size: 7,
+      x: width - margin - textWidth(font, printText, printSize),
+      y: printY,
+      size: printSize,
       font,
       color: MUTED,
     });
 
     const cycleTitle = `CICLO INÍCIO EM ${startLabel}`;
+    const cycleY = logoY - 18;
     draw(page, cycleTitle, {
       x: margin,
-      y: height - headerH - 2,
+      y: cycleY,
       size: 8,
       font: bold,
       color: INK,
     });
+    const tableTop = cycleY - 14;
 
     type Row = { key: string; label: string; height: number };
     const rows: Row[] = [
@@ -270,7 +297,6 @@ export async function buildReportPdf(input: {
       ...(sections.rules ? [{ key: "rules", label: "Regra", height: 64 }] : []),
     ];
 
-    const tableTop = height - headerH - 18;
     const tableHeight = rows.reduce((sum, row) => sum + row.height, 0);
     const tableBottom = tableTop - tableHeight;
 
@@ -375,6 +401,7 @@ export async function buildReportPdf(input: {
   if (appendixNeeded) {
     let page = doc.addPage(PORTRAIT);
     let { width, height } = page.getSize();
+    if (logo) drawWatermark(page, logo);
     const contentWidth = width - 72;
     let y = height - 48;
 
@@ -389,6 +416,7 @@ export async function buildReportPdf(input: {
       if (y - need >= 42) return;
       page = doc.addPage(PORTRAIT);
       ({ width, height } = page.getSize());
+      if (logo) drawWatermark(page, logo);
       y = height - 48;
     };
 
