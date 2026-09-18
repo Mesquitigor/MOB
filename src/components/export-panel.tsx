@@ -3,6 +3,12 @@
 import { useMemo, useState } from "react";
 import { Download, Mail } from "lucide-react";
 import { endOfMonthISO, endOfYearISO, startOfMonthISO, startOfYearISO } from "@/lib/dates";
+import {
+  DEFAULT_REPORT_SECTIONS,
+  REPORT_SECTION_FIELDS,
+  reportSearchParams,
+  type ReportSections,
+} from "@/lib/report";
 
 type Preset = "today" | "cycle" | "month" | "year" | "custom";
 
@@ -22,6 +28,7 @@ export function ExportPanel({
   const [to, setTo] = useState(cycleEnd || today);
   const [status, setStatus] = useState<string>("");
   const [busy, setBusy] = useState<"pdf" | "email" | null>(null);
+  const [sections, setSections] = useState<ReportSections>(DEFAULT_REPORT_SECTIONS);
 
   const range = useMemo(() => {
     if (preset === "today") return { from: today, to: today };
@@ -36,6 +43,8 @@ export function ExportPanel({
     }
     return { from, to };
   }, [preset, from, to, today, cycleStart, cycleEnd]);
+
+  const pad = preset === "cycle" ? 35 : undefined;
 
   function applyPreset(next: Preset) {
     setPreset(next);
@@ -55,11 +64,16 @@ export function ExportPanel({
     }
   }
 
+  function toggleSection(key: keyof ReportSections) {
+    setSections((current) => ({ ...current, [key]: !current[key] }));
+  }
+
   async function downloadPdf() {
     setBusy("pdf");
     setStatus("");
     try {
-      const response = await fetch(`/api/export?from=${range.from}&to=${range.to}`);
+      const query = reportSearchParams(range.from, range.to, sections, pad);
+      const response = await fetch(`/api/export?${query}`);
       if (!response.ok) {
         const payload = (await response.json().catch(() => null)) as { error?: string } | null;
         throw new Error(payload?.error || "Não foi possível gerar o PDF.");
@@ -86,7 +100,7 @@ export function ExportPanel({
       const response = await fetch("/api/report", {
         method: "POST",
         headers: { "Content-Type": "application/json" },
-        body: JSON.stringify(range),
+        body: JSON.stringify({ ...range, ...sections, pad }),
       });
       const payload = (await response.json().catch(() => null)) as { error?: string } | null;
       if (!response.ok) {
@@ -157,6 +171,31 @@ export function ExportPanel({
           />
         </label>
       </div>
+
+      <fieldset className="mt-6">
+        <legend className="text-sm font-medium text-ink">Incluir no PDF</legend>
+        <p className="mt-1 text-sm text-muted">
+          O padrão é só o dia, o que você sente e o que você vê.
+        </p>
+        <ul className="mt-3 space-y-2">
+          {REPORT_SECTION_FIELDS.map((item) => (
+            <li key={item.key}>
+              <label className="flex items-start gap-2 text-sm">
+                <input
+                  type="checkbox"
+                  className="check mt-0.5"
+                  checked={sections[item.key]}
+                  onChange={() => toggleSection(item.key)}
+                />
+                <span>
+                  <span className="font-medium">{item.label}</span>
+                  <span className="block text-muted">{item.hint}</span>
+                </span>
+              </label>
+            </li>
+          ))}
+        </ul>
+      </fieldset>
 
       {status ? (
         <p className="mt-4 text-sm text-teal-dark" role="status">

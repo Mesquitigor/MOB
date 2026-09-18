@@ -1,6 +1,7 @@
 import { NextResponse } from "next/server";
 import { listEntriesInRange } from "@/lib/entries";
 import { buildReportPdf, reportFilename } from "@/lib/pdf";
+import { parsePadDays, parseReportSections } from "@/lib/report";
 import { getSession } from "@/lib/session";
 
 export const runtime = "nodejs";
@@ -25,6 +26,8 @@ export async function GET(request: Request) {
     from,
     to,
     entries,
+    sections: parseReportSections(url.searchParams),
+    pad: parsePadDays(url.searchParams),
   });
 
   return new NextResponse(new Uint8Array(pdf), {
