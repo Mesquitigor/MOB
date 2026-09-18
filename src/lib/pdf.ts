@@ -369,15 +369,6 @@ export async function buildReportPdf(input: {
       thickness: 0.8,
       color: LINE,
     });
-
-    const disclaimer = "Apoio às anotações. Não substitui instrutora credenciada.";
-    draw(page, disclaimer, {
-      x: margin,
-      y: 18,
-      size: 7,
-      font,
-      color: MUTED,
-    });
   }
 
   const appendixNeeded = sections.legend || sections.tips || sections.rules;
