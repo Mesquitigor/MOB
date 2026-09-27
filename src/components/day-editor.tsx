@@ -8,15 +8,13 @@ import {
   BLEEDING_TYPES,
   MUCUS_META,
   MUCUS_TYPES,
-  SENSATION_META,
-  SENSATIONS,
+  SENSATION_SUGGESTIONS,
   STAMP_META,
   STAMP_TYPES,
   suggestStamp,
   type Bleeding,
   type DayEntryView,
   type Mucus,
-  type Sensation,
   type StampType,
 } from "@/lib/billings";
 import { cn } from "@/lib/cn";
@@ -40,7 +38,7 @@ export function DayEditor({
   const [state, action, pending] = useActionState(saveEntryAction, initial);
   const wasPending = useRef(false);
   const [stamp, setStamp] = useState<StampType>(entry?.stamp ?? "DRY");
-  const [sensation, setSensation] = useState<Sensation | "">(entry?.sensation ?? "");
+  const [sensation, setSensation] = useState(entry?.sensation ?? "");
   const [mucus, setMucus] = useState<Mucus | "">(entry?.mucus ?? "");
   const [bleeding, setBleeding] = useState<Bleeding | "">(entry?.bleeding ?? "");
   const [currentDate, setCurrentDate] = useState(date);
@@ -152,17 +150,7 @@ export function DayEditor({
             ) : null}
           </fieldset>
 
-          <ChipGroup
-            legend="O que sinto"
-            name="sensation"
-            value={sensation}
-            onChange={(value) => setSensation(value as Sensation | "")}
-            options={SENSATIONS.map((item) => ({
-              value: item,
-              label: SENSATION_META[item].label,
-              hint: SENSATION_META[item].hint,
-            }))}
-          />
+          <SensationField value={sensation} onChange={setSensation} />
           <ChipGroup
             legend="O que vejo"
             name="mucus"
@@ -239,6 +227,53 @@ export function DayEditor({
         </form>
       </div>
     </div>
+  );
+}
+
+function SensationField({
+  value,
+  onChange,
+}: {
+  value: string;
+  onChange: (value: string) => void;
+}) {
+  return (
+    <fieldset>
+      <legend className="mb-2 text-sm font-medium">O que sinto</legend>
+      <input
+        name="sensation"
+        type="text"
+        value={value}
+        onChange={(event) => onChange(event.target.value)}
+        className="input"
+        maxLength={80}
+        placeholder="Se desejar, descreva o que sentiu"
+        autoComplete="off"
+      />
+      <p className="mt-3 mb-2 text-xs text-muted">Sugestões</p>
+      <div className="flex flex-wrap gap-2">
+        {SENSATION_SUGGESTIONS.map((option) => {
+          const selected = value.trim().toLowerCase() === option.label.toLowerCase();
+          return (
+            <button
+              key={option.label}
+              type="button"
+              title={option.hint}
+              aria-pressed={selected}
+              onClick={() => onChange(selected ? "" : option.label)}
+              className={cn(
+                "rounded-full border px-3 py-1.5 text-sm transition",
+                selected
+                  ? "border-teal bg-teal text-white"
+                  : "border-line bg-cream text-ink hover:border-teal/40",
+              )}
+            >
+              {option.label}
+            </button>
+          );
+        })}
+      </div>
+    </fieldset>
   );
 }
 

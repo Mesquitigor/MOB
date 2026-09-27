@@ -4,7 +4,7 @@ import { useMemo, useState } from "react";
 import { Plus } from "lucide-react";
 import { DayEditor } from "@/components/day-editor";
 import { Stamp } from "@/components/stamp";
-import { MUCUS_META, SENSATION_META, STAMP_META, type DayEntryView } from "@/lib/billings";
+import { MUCUS_META, sensationDisplay, STAMP_META, type DayEntryView } from "@/lib/billings";
 import { cn } from "@/lib/cn";
 import { eachDate, formatDay } from "@/lib/dates";
 
@@ -168,7 +168,7 @@ export function CycleBoard({
 
 function detailLine(entry: DayEntryView) {
   const parts = [
-    entry.sensation ? SENSATION_META[entry.sensation].label : null,
+    entry.sensation ? sensationDisplay(entry.sensation) : null,
     entry.mucus && entry.mucus !== "NONE" ? MUCUS_META[entry.mucus].label : null,
     entry.notes.trim() || null,
   ].filter(Boolean);

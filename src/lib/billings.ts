@@ -41,7 +41,7 @@ export type DayEntryView = {
   id: string;
   date: string;
   stamp: StampType;
-  sensation: Sensation | null;
+  sensation: string | null;
   mucus: Mucus | null;
   bleeding: Bleeding | null;
   intercourse: boolean;
@@ -111,6 +111,16 @@ export const SENSATION_META: Record<Sensation, { label: string; hint: string }> 
   SLIPPERY: { label: "Escorregadia", hint: "Lembra lubrificante" },
 };
 
+export const SENSATION_SUGGESTIONS = [
+  { label: "Seca", hint: "Sem umidade" },
+  { label: "Úmida", hint: "Como se estivesse suada" },
+  { label: "Molhada", hint: "Lembra escape de xixi" },
+  { label: "Pegajosa", hint: "Calcinha colando" },
+  { label: "Escorregadia", hint: "Lembra lubrificante" },
+  { label: "Inchada", hint: "Vulva inchada, comum no ápice" },
+  { label: "Clara de ovo", hint: "Muco elástico e transparente" },
+] as const;
+
 export const MUCUS_META: Record<Mucus, { label: string; hint: string }> = {
   NONE: { label: "Nada visível", hint: "Sem muco aparente" },
   EGG_WHITE: { label: "Clara de ovo", hint: "Transparente e elástico" },
@@ -164,6 +174,26 @@ export function isSensation(value: string | null | undefined): value is Sensatio
   return SENSATIONS.includes(value as Sensation);
 }
 
+export function sensationDisplay(value: string | null | undefined) {
+  if (!value) return "";
+  if (isSensation(value)) return SENSATION_META[value].label;
+  return value;
+}
+
+export function inferSensation(value: string | null | undefined): Sensation | null {
+  if (!value) return null;
+  if (isSensation(value)) return value;
+  const normalized = value.trim().toLowerCase();
+  const byLabel = SENSATIONS.find((item) => SENSATION_META[item].label.toLowerCase() === normalized);
+  if (byLabel) return byLabel;
+  if (/escorreg|lubrific|clara de ovo|el[aá]stic/.test(normalized)) return "SLIPPERY";
+  if (/molhad/.test(normalized)) return "WET";
+  if (/[uú]mid/.test(normalized)) return "DAMP";
+  if (/pegajos/.test(normalized)) return "STICKY";
+  if (/seca/.test(normalized)) return "DRY";
+  return null;
+}
+
 export function isMucus(value: string | null | undefined): value is Mucus {
   return MUCUS_TYPES.includes(value as Mucus);
 }
@@ -173,29 +203,30 @@ export function isBleeding(value: string | null | undefined): value is Bleeding 
 }
 
 export function suggestStamp(input: {
-  sensation?: Sensation | null;
+  sensation?: string | null;
   mucus?: Mucus | null;
   bleeding?: Bleeding | null;
 }): StampType | null {
+  const sensation = inferSensation(input.sensation);
   if (input.bleeding === "MENSTRUATION" || input.bleeding === "BLEEDING") {
     return "MENSTRUATION";
   }
   if (input.bleeding === "SPOTTING") return "SPOTTING";
-  if (input.sensation === "SLIPPERY" || input.mucus === "EGG_WHITE") {
+  if (sensation === "SLIPPERY" || input.mucus === "EGG_WHITE") {
     return "FERTILE";
   }
-  if (input.sensation === "DRY" && (!input.mucus || input.mucus === "NONE")) {
+  if (sensation === "DRY" && (!input.mucus || input.mucus === "NONE")) {
     return "DRY";
   }
   if (
-    input.sensation === "STICKY" ||
+    sensation === "STICKY" ||
     input.mucus === "MILKY" ||
     input.mucus === "CLOUDY" ||
     input.mucus === "FLAKY"
   ) {
     return "INFERTILE";
   }
-  if (input.sensation === "WET" || input.sensation === "DAMP") {
+  if (sensation === "WET" || sensation === "DAMP") {
     return "FERTILE";
   }
   return null;
@@ -203,12 +234,12 @@ export function suggestStamp(input: {
 
 export function entrySummary(entry: {
   stamp: StampType;
-  sensation: Sensation | null;
+  sensation: string | null;
   mucus: Mucus | null;
   notes: string;
 }) {
   const parts = [STAMP_META[entry.stamp].short];
-  if (entry.sensation) parts.push(SENSATION_META[entry.sensation].label);
+  if (entry.sensation) parts.push(sensationDisplay(entry.sensation));
   if (entry.mucus && entry.mucus !== "NONE") {
     parts.push(MUCUS_META[entry.mucus].label);
   }

@@ -5,6 +5,7 @@ import {
   isMucus,
   isSensation,
   isStampType,
+  SENSATION_META,
   type DayEntryView,
   type StampType,
 } from "@/lib/billings";
@@ -15,7 +16,11 @@ function toView(entry: DayEntry, cycleStart?: string | null): DayEntryView {
     id: entry.id,
     date: entry.date,
     stamp: isStampType(entry.stamp) ? entry.stamp : "DRY",
-    sensation: isSensation(entry.sensation) ? entry.sensation : null,
+    sensation: entry.sensation
+      ? isSensation(entry.sensation)
+        ? SENSATION_META[entry.sensation].label
+        : entry.sensation
+      : null,
     mucus: isMucus(entry.mucus) ? entry.mucus : null,
     bleeding: isBleeding(entry.bleeding) ? entry.bleeding : null,
     intercourse: entry.intercourse,

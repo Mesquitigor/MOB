@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { degrees, PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage, type RGB } from "pdf-lib";
-import { STAMP_META, BILLINGS_RULES, ANNOTATION_TIPS, SENSATION_META, MUCUS_META, type DayEntryView, type StampType } from "@/lib/billings";
+import { STAMP_META, BILLINGS_RULES, ANNOTATION_TIPS, sensationDisplay, MUCUS_META, type DayEntryView, type StampType } from "@/lib/billings";
 import { addDaysISO, eachDate, formatDay, todayISO } from "@/lib/dates";
 import { DEFAULT_REPORT_SECTIONS, type ReportSections } from "@/lib/report";
 
@@ -155,8 +155,7 @@ function chunks<T>(items: T[], size: number) {
 }
 
 function sensationLabel(entry: DayEntryView | undefined) {
-  if (!entry?.sensation) return "";
-  return SENSATION_META[entry.sensation].label.toUpperCase();
+  return sensationDisplay(entry?.sensation).toUpperCase();
 }
 
 function mucusLabel(entry: DayEntryView | undefined) {
