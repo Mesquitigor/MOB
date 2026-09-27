@@ -2,7 +2,7 @@
 
 import { revalidatePath } from "next/cache";
 import { redirect } from "next/navigation";
-import { isStampType } from "@/lib/billings";
+import { isBleeding, isStampType, suggestStamp } from "@/lib/billings";
 import { saveDayEntry, deleteDayEntry } from "@/lib/entries";
 import { getSession } from "@/lib/session";
 
@@ -17,18 +17,24 @@ export async function saveEntryAction(_prev: EntryState, formData: FormData): Pr
   if (!session) redirect("/entrar");
 
   const date = asText(formData.get("date"));
-  const stamp = asText(formData.get("stamp"));
-  if (!date || !isStampType(stamp)) {
-    return { error: "Escolha a data e o selo do dia." };
+  if (!date) {
+    return { error: "Escolha a data." };
   }
+
+  const sensation = asText(formData.get("sensation")) || null;
+  const mucus = asText(formData.get("mucus")) || null;
+  const bleedingRaw = asText(formData.get("bleeding"));
+  const bleeding = isBleeding(bleedingRaw) ? bleedingRaw : null;
+  const previous = asText(formData.get("stamp"));
+  const stamp = suggestStamp({ sensation, mucus, bleeding }) ?? (isStampType(previous) ? previous : "DRY");
 
   await saveDayEntry({
     userId: session.id,
     date,
     stamp,
-    sensation: asText(formData.get("sensation")) || null,
-    mucus: asText(formData.get("mucus")) || null,
-    bleeding: asText(formData.get("bleeding")) || null,
+    sensation,
+    mucus,
+    bleeding,
     intercourse: asText(formData.get("intercourse")) === "on",
     peak: asText(formData.get("peak")) === "on",
     notes: asText(formData.get("notes")).slice(0, 280),

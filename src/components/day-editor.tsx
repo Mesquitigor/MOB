@@ -1,26 +1,20 @@
 "use client";
 
-import { useActionState, useEffect, useMemo, useRef, useState } from "react";
+import { useActionState, useEffect, useRef, useState } from "react";
+import { X } from "lucide-react";
 import { saveEntryAction, deleteEntryAction, type EntryState } from "@/actions/entries";
-import { Stamp } from "@/components/stamp";
-import {
-  BLEEDING_META,
-  BLEEDING_TYPES,
-  MUCUS_META,
-  MUCUS_TYPES,
-  SENSATION_SUGGESTIONS,
-  STAMP_META,
-  STAMP_TYPES,
-  suggestStamp,
-  type Bleeding,
-  type DayEntryView,
-  type Mucus,
-  type StampType,
-} from "@/lib/billings";
+import { mucusDisplay, SENSATION_SUGGESTIONS, type DayEntryView } from "@/lib/billings";
 import { cn } from "@/lib/cn";
 import { formatLong } from "@/lib/dates";
 
 const initial: EntryState = {};
+
+function preservedBleeding(entry: DayEntryView | null) {
+  if (entry?.bleeding) return entry.bleeding;
+  if (entry?.stamp === "MENSTRUATION") return "MENSTRUATION";
+  if (entry?.stamp === "SPOTTING") return "SPOTTING";
+  return "";
+}
 
 export function DayEditor({
   open,
@@ -37,10 +31,9 @@ export function DayEditor({
 }) {
   const [state, action, pending] = useActionState(saveEntryAction, initial);
   const wasPending = useRef(false);
-  const [stamp, setStamp] = useState<StampType>(entry?.stamp ?? "DRY");
   const [sensation, setSensation] = useState(entry?.sensation ?? "");
-  const [mucus, setMucus] = useState<Mucus | "">(entry?.mucus ?? "");
-  const [bleeding, setBleeding] = useState<Bleeding | "">(entry?.bleeding ?? "");
+  const [customOpen, setCustomOpen] = useState(false);
+  const [mucus, setMucus] = useState(mucusDisplay(entry?.mucus));
   const [currentDate, setCurrentDate] = useState(date);
 
   useEffect(() => {
@@ -50,22 +43,24 @@ export function DayEditor({
 
   useEffect(() => {
     if (!open) return;
+    const next = entry?.sensation ?? "";
+    const isPreset = SENSATION_SUGGESTIONS.some(
+      (option) => option.label.toLowerCase() === next.trim().toLowerCase(),
+    );
+    setSensation(next);
+    setCustomOpen(Boolean(next) && !isPreset);
+    setMucus(mucusDisplay(entry?.mucus));
+    setCurrentDate(date);
+  }, [open, date, entry]);
+
+  useEffect(() => {
+    if (!open) return;
     const onKey = (event: KeyboardEvent) => {
       if (event.key === "Escape") onClose();
     };
     window.addEventListener("keydown", onKey);
     return () => window.removeEventListener("keydown", onKey);
   }, [open, onClose]);
-
-  const suggested = useMemo(
-    () =>
-      suggestStamp({
-        sensation: sensation || null,
-        mucus: mucus || null,
-        bleeding: bleeding || null,
-      }),
-    [sensation, mucus, bleeding],
-  );
 
   if (!open) return null;
 
@@ -83,26 +78,32 @@ export function DayEditor({
         aria-labelledby="anotar-titulo"
         className="card relative z-10 max-h-[92dvh] w-full max-w-xl overflow-y-auto rounded-t-3xl p-6 sm:rounded-3xl sm:p-8"
       >
-        <div className="mb-4 flex items-start justify-between gap-3">
+        <div className="mb-5 flex items-start justify-between gap-3">
           <div>
-            <p className="text-sm text-muted">Anotação</p>
-            <h2 id="anotar-titulo" className="font-display text-2xl text-teal-dark">
+            <p className="text-xs font-medium tracking-[0.18em] text-muted uppercase">
+              Adicionar anotação
+            </p>
+            <h2 id="anotar-titulo" className="mt-1 font-display text-2xl text-teal-dark">
               {currentDate === today ? "Hoje" : formatLong(currentDate)}
             </h2>
           </div>
           <button
             type="button"
             onClick={onClose}
-            className="rounded-full px-3 py-1 text-sm text-muted hover:bg-cream"
+            className="grid size-9 place-items-center rounded-lg bg-stamp-red text-white"
+            aria-label="Fechar"
           >
-            Fechar
+            <X size={18} strokeWidth={2.4} />
           </button>
         </div>
 
-        <form action={action} className="space-y-5">
-          <input type="hidden" name="stamp" value={stamp} />
+        <form action={action} className="space-y-5" key={entry?.id ?? `new-${date}`}>
+          <input type="hidden" name="stamp" value={entry?.stamp ?? "DRY"} />
+          <input type="hidden" name="bleeding" value={preservedBleeding(entry)} />
+          <input type="hidden" name="notes" value={entry?.notes ?? ""} />
+
           <label className="block">
-            <span className="mb-1 block text-sm font-medium">Data</span>
+            <span className="sr-only">Data</span>
             <input
               type="date"
               name="date"
@@ -113,66 +114,26 @@ export function DayEditor({
             />
           </label>
 
-          <fieldset>
-            <legend className="mb-2 text-sm font-medium">Selo do dia</legend>
-            <div className="grid grid-cols-5 gap-2">
-              {STAMP_TYPES.map((type) => {
-                const selected = stamp === type;
-                return (
-                  <button
-                    key={type}
-                    type="button"
-                    onClick={() => setStamp(type)}
-                    aria-pressed={selected}
-                    className={cn(
-                      "flex flex-col items-center gap-2 rounded-2xl border px-1 py-3 text-center transition",
-                      selected
-                        ? "border-teal bg-cream"
-                        : "border-line bg-white hover:border-teal/40",
-                    )}
-                  >
-                    <Stamp type={type} size="md" selected={selected} />
-                    <span className="text-xs font-semibold leading-tight">
-                      {STAMP_META[type].label}
-                    </span>
-                  </button>
-                );
-              })}
-            </div>
-            {suggested && suggested !== stamp ? (
-              <button
-                type="button"
-                className="mt-2 text-sm text-teal underline-offset-2 hover:underline"
-                onClick={() => setStamp(suggested)}
-              >
-                Usar selo sugerido: {STAMP_META[suggested].label}
-              </button>
-            ) : null}
-          </fieldset>
+          <SensationField
+            value={sensation}
+            customOpen={customOpen}
+            onChange={setSensation}
+            onCustomOpen={setCustomOpen}
+          />
 
-          <SensationField value={sensation} onChange={setSensation} />
-          <ChipGroup
-            legend="O que vejo"
-            name="mucus"
-            value={mucus}
-            onChange={(value) => setMucus(value as Mucus | "")}
-            options={MUCUS_TYPES.map((item) => ({
-              value: item,
-              label: MUCUS_META[item].label,
-              hint: MUCUS_META[item].hint,
-            }))}
-          />
-          <ChipGroup
-            legend="Sangramento"
-            name="bleeding"
-            value={bleeding}
-            onChange={(value) => setBleeding(value as Bleeding | "")}
-            options={BLEEDING_TYPES.map((item) => ({
-              value: item,
-              label: BLEEDING_META[item].label,
-              hint: BLEEDING_META[item].hint,
-            }))}
-          />
+          <label className="block">
+            <span className="mb-2 block text-sm font-medium">O que você vê?</span>
+            <input
+              name="mucus"
+              type="text"
+              value={mucus}
+              onChange={(event) => setMucus(event.target.value)}
+              className="input"
+              maxLength={80}
+              placeholder="Se desejar, digite uma observação"
+              autoComplete="off"
+            />
+          </label>
 
           <div className="flex flex-wrap gap-4">
             <label className="inline-flex items-center gap-2 text-sm">
@@ -189,28 +150,13 @@ export function DayEditor({
             </label>
           </div>
 
-          <label className="block">
-            <span className="mb-1 block text-sm font-medium">Nota</span>
-            <textarea
-              name="notes"
-              maxLength={280}
-              defaultValue={entry?.notes ?? ""}
-              rows={2}
-              className="input resize-none"
-              placeholder="Opcional"
-            />
-          </label>
-
           {state.error ? (
             <p role="alert" className="text-sm text-stamp-red">
               {state.error}
             </p>
           ) : null}
 
-          <div className="flex flex-wrap gap-2">
-            <button type="submit" className="btn-pink flex-1" disabled={pending}>
-              {pending ? "Salvando..." : "Salvar dia"}
-            </button>
+          <div className="flex flex-wrap items-center justify-end gap-2">
             {entry ? (
               <button
                 type="button"
@@ -223,6 +169,9 @@ export function DayEditor({
                 Excluir
               </button>
             ) : null}
+            <button type="submit" className="btn-pink" disabled={pending}>
+              {pending ? "Salvando..." : entry ? "Salvar" : "Adicionar"}
+            </button>
           </div>
         </form>
       </div>
@@ -232,90 +181,83 @@ export function DayEditor({
 
 function SensationField({
   value,
+  customOpen,
   onChange,
+  onCustomOpen,
 }: {
   value: string;
+  customOpen: boolean;
   onChange: (value: string) => void;
+  onCustomOpen: (open: boolean) => void;
 }) {
+  const selectedPreset = SENSATION_SUGGESTIONS.find(
+    (option) => option.label.toLowerCase() === value.trim().toLowerCase(),
+  );
+  const outraSelected = customOpen && !selectedPreset;
+
   return (
     <fieldset>
-      <legend className="mb-2 text-sm font-medium">O que sinto</legend>
-      <input
-        name="sensation"
-        type="text"
-        value={value}
-        onChange={(event) => onChange(event.target.value)}
-        className="input"
-        maxLength={80}
-        placeholder="Se desejar, descreva o que sentiu"
-        autoComplete="off"
-      />
-      <p className="mt-3 mb-2 text-xs text-muted">Sugestões</p>
-      <div className="flex flex-wrap gap-2">
+      <legend className="mb-2 text-sm font-medium">O que você sente?</legend>
+      {outraSelected ? null : <input type="hidden" name="sensation" value={value} />}
+      <div className="grid grid-cols-2 gap-2 sm:grid-cols-3">
         {SENSATION_SUGGESTIONS.map((option) => {
-          const selected = value.trim().toLowerCase() === option.label.toLowerCase();
+          const selected = selectedPreset?.label === option.label;
           return (
             <button
               key={option.label}
               type="button"
               title={option.hint}
               aria-pressed={selected}
-              onClick={() => onChange(selected ? "" : option.label)}
+              onClick={() => {
+                onCustomOpen(false);
+                onChange(selected ? "" : option.label);
+              }}
               className={cn(
-                "rounded-full border px-3 py-1.5 text-sm transition",
+                "rounded-xl border px-3 py-3 text-center text-xs font-semibold tracking-[0.08em] uppercase transition",
                 selected
-                  ? "border-teal bg-teal text-white"
-                  : "border-line bg-cream text-ink hover:border-teal/40",
+                  ? "border-teal bg-white text-teal-dark"
+                  : "border-line bg-white text-ink hover:border-teal/40",
               )}
             >
               {option.label}
             </button>
           );
         })}
+        <button
+          type="button"
+          aria-pressed={outraSelected}
+          onClick={() => {
+            if (outraSelected) {
+              onCustomOpen(false);
+              onChange("");
+              return;
+            }
+            onCustomOpen(true);
+            if (selectedPreset) onChange("");
+          }}
+          className={cn(
+            "rounded-xl border px-3 py-3 text-center text-xs font-semibold tracking-[0.08em] uppercase transition",
+            outraSelected
+              ? "border-teal bg-white text-teal-dark"
+              : "border-line bg-white text-ink hover:border-teal/40",
+          )}
+        >
+          Outra
+        </button>
       </div>
-    </fieldset>
-  );
-}
-
-function ChipGroup({
-  legend,
-  name,
-  value,
-  onChange,
-  options,
-}: {
-  legend: string;
-  name: string;
-  value: string;
-  onChange: (value: string) => void;
-  options: { value: string; label: string; hint: string }[];
-}) {
-  return (
-    <fieldset>
-      <legend className="mb-2 text-sm font-medium">{legend}</legend>
-      <input type="hidden" name={name} value={value} />
-      <div className="flex flex-wrap gap-2">
-        {options.map((option) => {
-          const selected = value === option.value;
-          return (
-            <button
-              key={option.value}
-              type="button"
-              title={option.hint || option.label}
-              aria-pressed={selected}
-              onClick={() => onChange(selected ? "" : option.value)}
-              className={cn(
-                "rounded-full border px-3 py-1.5 text-sm transition",
-                selected
-                  ? "border-teal bg-teal text-white"
-                  : "border-line bg-cream text-ink hover:border-teal/40",
-              )}
-            >
-              {option.label}
-            </button>
-          );
-        })}
-      </div>
+      {outraSelected ? (
+        <input
+          name="sensation"
+          type="text"
+          value={value}
+          onChange={(event) => onChange(event.target.value)}
+          className="input mt-3"
+          maxLength={80}
+          placeholder="Descreva o que sentiu"
+          autoComplete="off"
+          autoFocus
+        />
+      ) : null}
     </fieldset>
   );
 }

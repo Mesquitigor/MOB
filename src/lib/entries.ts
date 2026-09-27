@@ -2,9 +2,9 @@ import { getPrisma } from "@/lib/db";
 import { addDaysISO, diffDays } from "@/lib/dates";
 import {
   isBleeding,
-  isMucus,
   isSensation,
   isStampType,
+  mucusDisplay,
   SENSATION_META,
   type DayEntryView,
   type StampType,
@@ -21,7 +21,7 @@ function toView(entry: DayEntry, cycleStart?: string | null): DayEntryView {
         ? SENSATION_META[entry.sensation].label
         : entry.sensation
       : null,
-    mucus: isMucus(entry.mucus) ? entry.mucus : null,
+    mucus: mucusDisplay(entry.mucus) || null,
     bleeding: isBleeding(entry.bleeding) ? entry.bleeding : null,
     intercourse: entry.intercourse,
     peak: entry.peak,

@@ -1,7 +1,7 @@
 import { readFile } from "node:fs/promises";
 import { join } from "node:path";
 import { degrees, PDFDocument, StandardFonts, rgb, type PDFFont, type PDFImage, type PDFPage, type RGB } from "pdf-lib";
-import { STAMP_META, BILLINGS_RULES, ANNOTATION_TIPS, sensationDisplay, MUCUS_META, type DayEntryView, type StampType } from "@/lib/billings";
+import { STAMP_META, BILLINGS_RULES, ANNOTATION_TIPS, sensationDisplay, mucusDisplay, type DayEntryView, type StampType } from "@/lib/billings";
 import { addDaysISO, eachDate, formatDay, todayISO } from "@/lib/dates";
 import { DEFAULT_REPORT_SECTIONS, type ReportSections } from "@/lib/report";
 
@@ -160,8 +160,9 @@ function sensationLabel(entry: DayEntryView | undefined) {
 
 function mucusLabel(entry: DayEntryView | undefined) {
   if (!entry) return "";
-  if (!entry.mucus || entry.mucus === "NONE") return entry.sensation ? "NADA" : "";
-  return MUCUS_META[entry.mucus].label.toUpperCase();
+  const seen = mucusDisplay(entry.mucus);
+  if (!seen) return entry.sensation ? "NADA" : "";
+  return seen.toUpperCase();
 }
 
 async function embedLogo(doc: PDFDocument) {
