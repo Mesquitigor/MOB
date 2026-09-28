@@ -1,5 +1,4 @@
-import { Stamp, StampLegendItem } from "@/components/stamp";
-import { ANNOTATION_TIPS, BILLINGS_RULES, MUCUS_META, SENSATION_META, STAMP_TYPES } from "@/lib/billings";
+import { ANNOTATION_TIPS, BILLINGS_RULES, MUCUS_META, SENSATION_SUGGESTIONS } from "@/lib/billings";
 
 export default function GuidePage() {
   return (
@@ -16,20 +15,12 @@ export default function GuidePage() {
         </ul>
       </section>
 
-      <section className="card p-6 sm:p-8">
-        <h2 className="font-display text-2xl text-teal-dark">Cores e símbolos</h2>
-        <div className="mt-4 grid gap-4 sm:grid-cols-2">
-          {STAMP_TYPES.map((type) => (
-            <StampLegendItem key={type} type={type} />
-          ))}
-        </div>
-      </section>
-
       <section className="grid gap-4 md:grid-cols-2">
         <div className="card p-6 sm:p-8">
           <h2 className="font-display text-2xl text-teal-dark">O que sinto</h2>
+          <p className="mt-1 text-sm text-muted">Escolha uma sugestão ou descreva com as suas palavras.</p>
           <ul className="mt-3 space-y-2 text-sm">
-            {Object.values(SENSATION_META).map((item) => (
+            {SENSATION_SUGGESTIONS.map((item) => (
               <li key={item.label}>
                 <span className="font-semibold">{item.label}</span>
                 <span className="text-muted"> — {item.hint}</span>
@@ -39,13 +30,16 @@ export default function GuidePage() {
         </div>
         <div className="card p-6 sm:p-8">
           <h2 className="font-display text-2xl text-teal-dark">O que vejo</h2>
+          <p className="mt-1 text-sm text-muted">Escreva o que viu. Se não viu nada, deixe em branco — o dia registra Nada.</p>
           <ul className="mt-3 space-y-2 text-sm">
-            {Object.values(MUCUS_META).map((item) => (
-              <li key={item.label}>
-                <span className="font-semibold">{item.label}</span>
-                {item.hint ? <span className="text-muted"> — {item.hint}</span> : null}
-              </li>
-            ))}
+            {Object.values(MUCUS_META)
+              .filter((item) => item.label !== "Nada visível")
+              .map((item) => (
+                <li key={item.label}>
+                  <span className="font-semibold">{item.label}</span>
+                  {item.hint ? <span className="text-muted"> — {item.hint}</span> : null}
+                </li>
+              ))}
           </ul>
         </div>
       </section>
@@ -65,8 +59,7 @@ export default function GuidePage() {
         </ol>
       </section>
 
-      <p className="flex items-center gap-2 px-2 pb-2 text-sm text-muted">
-        <Stamp type="FERTILE" size="sm" />
+      <p className="px-2 pb-2 text-sm text-muted">
         Material de apoio. Não substitui o acompanhamento com instrutora credenciada.
       </p>
     </div>

@@ -180,6 +180,14 @@ export function sensationDisplay(value: string | null | undefined) {
   return value;
 }
 
+export function feltLabel(value: string | null | undefined, empty = "—") {
+  return sensationDisplay(value) || empty;
+}
+
+export function seenLabel(value: string | null | undefined, empty = "Nada") {
+  return mucusDisplay(value) || empty;
+}
+
 export function inferSensation(value: string | null | undefined): Sensation | null {
   if (!value) return null;
   if (isSensation(value)) return value;

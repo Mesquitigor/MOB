@@ -1,10 +1,8 @@
 "use client";
 
 import { useMemo, useState } from "react";
-import { Plus } from "lucide-react";
 import { DayEditor } from "@/components/day-editor";
-import { Stamp } from "@/components/stamp";
-import { mucusDisplay, sensationDisplay, STAMP_META, type DayEntryView } from "@/lib/billings";
+import { feltLabel, seenLabel, type DayEntryView } from "@/lib/billings";
 import { cn } from "@/lib/cn";
 import { eachDate, formatDay } from "@/lib/dates";
 
@@ -27,19 +25,14 @@ export function CycleBoard({
   const dates = startDate ? eachDate(startDate, lastDate > startDate ? lastDate : startDate) : [];
   const [open, setOpen] = useState(false);
   const [selected, setSelected] = useState(today);
-
   const selectedEntry = byDate.get(selected) ?? null;
-  const stats = {
-    days: entries.length,
-    fertile: entries.filter((entry) => entry.stamp === "FERTILE").length,
-    relations: entries.filter((entry) => entry.intercourse).length,
-    peak: entries.find((entry) => entry.peak)?.date,
-  };
 
   function openDate(date: string) {
     setSelected(date);
     setOpen(true);
   }
+
+  const rows = [...entries].reverse();
 
   return (
     <>
@@ -52,17 +45,17 @@ export function CycleBoard({
             </h1>
           </div>
           <button type="button" className="btn-pink" onClick={() => openDate(today)}>
-            <Plus className="h-4 w-4" aria-hidden="true" />
             Anotar hoje
           </button>
         </div>
 
         {dates.length ? (
-          <div className="space-y-6 px-6 py-6 sm:px-8">
-            <div className="flex gap-2 overflow-x-auto pb-1" role="list" aria-label="Selos do ciclo">
+          <div className="px-6 py-6 sm:px-8">
+            <div className="flex gap-1 overflow-x-auto pb-5" role="list" aria-label="Dia do ciclo">
               {dates.map((date, index) => {
-                const entry = byDate.get(date);
+                const day = index + 1;
                 const isToday = date === today;
+                const hasEntry = byDate.has(date);
                 return (
                   <button
                     key={date}
@@ -70,86 +63,83 @@ export function CycleBoard({
                     role="listitem"
                     onClick={() => openDate(date)}
                     className={cn(
-                      "flex w-14 shrink-0 flex-col items-center gap-1 rounded-2xl p-1.5 text-center transition hover:bg-cream",
-                      isToday && "bg-cream",
+                      "flex h-10 w-10 shrink-0 items-center justify-center rounded-full text-sm transition",
+                      isToday
+                        ? "bg-teal text-white"
+                        : hasEntry
+                          ? "bg-cream text-ink hover:bg-cream"
+                          : "text-muted hover:bg-cream",
                     )}
-                    aria-label={`${index + 1}, ${date}${entry ? `, ${STAMP_META[entry.stamp].label}` : ", sem anotação"}`}
+                    aria-label={`Dia ${day} do ciclo, ${formatDay(date)}`}
                   >
-                    <span className="text-[11px] font-semibold text-muted">{index + 1}</span>
-                    {entry ? (
-                      <Stamp type={entry.stamp} size="md" />
-                    ) : (
-                      <span className="flex h-11 w-11 items-center justify-center rounded-xl border border-dashed border-line text-line">
-                        ·
-                      </span>
-                    )}
-                    <span className="text-[10px] uppercase tracking-wide text-muted">
-                      {formatDay(date)}
-                    </span>
-                    {entry?.peak ? (
-                      <span className="text-[10px] font-bold text-pink">ÁPICE</span>
-                    ) : entry?.intercourse ? (
-                      <span className="text-[10px] text-teal">REL</span>
-                    ) : (
-                      <span className="h-3" />
-                    )}
+                    {day}
                   </button>
                 );
               })}
             </div>
 
-            <ul className="divide-y divide-line">
-              {[...entries].reverse().map((entry) => (
-                <li key={entry.id}>
-                  <button
-                    type="button"
-                    onClick={() => openDate(entry.date)}
-                    className="flex w-full items-center gap-3 py-3 text-left hover:bg-cream/70"
-                  >
-                    <span className="w-6 text-center text-sm font-semibold text-muted">
-                      {entry.cycleDay ?? "–"}
-                    </span>
-                    <Stamp type={entry.stamp} size="sm" />
-                    <span className="min-w-0 flex-1">
-                      <span className="block text-sm font-semibold tracking-wide text-ink">
-                        {STAMP_META[entry.stamp].short}
-                      </span>
-                      <span className="block truncate text-xs text-muted">
-                        {detailLine(entry)}
-                      </span>
-                    </span>
-                    <span className="text-xs font-medium uppercase text-muted">
-                      {formatDay(entry.date)}
-                    </span>
-                    <span className="flex w-16 justify-end gap-2 text-[10px] font-bold text-muted">
-                      {entry.intercourse ? <span>REL</span> : null}
-                      {entry.peak ? <span className="text-pink">ÁPICE</span> : null}
-                    </span>
-                  </button>
-                </li>
-              ))}
-            </ul>
+            {rows.length ? (
+              <div>
+                <div
+                  className="hidden border-b border-line pb-3 text-sm text-muted sm:grid sm:grid-cols-[8.5rem_minmax(0,1fr)_minmax(0,1fr)_6rem] sm:gap-6"
+                  aria-hidden="true"
+                >
+                  <span>Dia</span>
+                  <span>Sinto</span>
+                  <span>Vejo</span>
+                  <span>Relação</span>
+                </div>
+                <ul className="divide-y divide-line">
+                  {rows.map((entry) => {
+                    const felt = feltLabel(entry.sensation);
+                    const seen = seenLabel(entry.mucus);
+                    const relation = entry.intercourse ? "Sim" : "Não";
+                    const cycleLabel = entry.cycleDay ? `Dia ${entry.cycleDay}` : formatDay(entry.date);
+                    return (
+                      <li key={entry.id}>
+                        <button
+                          type="button"
+                          onClick={() => openDate(entry.date)}
+                          className="grid w-full grid-cols-1 gap-2 py-5 text-left hover:bg-cream/70 sm:grid-cols-[8.5rem_minmax(0,1fr)_minmax(0,1fr)_6rem] sm:items-baseline sm:gap-6"
+                        >
+                          <span>
+                            <span className="block font-display text-xl text-teal-dark">{cycleLabel}</span>
+                            {entry.cycleDay ? (
+                              <span className="block text-sm text-muted">{formatDay(entry.date)}</span>
+                            ) : null}
+                          </span>
+                          <span className="text-base text-ink">
+                            <span className="mr-2 text-sm text-muted sm:hidden">Sinto</span>
+                            {felt}
+                          </span>
+                          <span className="text-base text-ink">
+                            <span className="mr-2 text-sm text-muted sm:hidden">Vejo</span>
+                            {seen}
+                          </span>
+                          <span className="text-base text-ink">
+                            <span className="mr-2 text-sm text-muted sm:hidden">Relação</span>
+                            {relation}
+                          </span>
+                        </button>
+                      </li>
+                    );
+                  })}
+                </ul>
+              </div>
+            ) : (
+              <p className="py-10 text-center text-muted">
+                Toque num dia e anote o que sentiu, o que viu e se houve relação.
+              </p>
+            )}
           </div>
         ) : (
           <div className="px-6 py-14 text-center sm:px-8">
-            <div className="mx-auto mb-4 flex justify-center gap-2">
-              <Stamp type="DRY" />
-              <Stamp type="FERTILE" />
-              <Stamp type="MENSTRUATION" />
-            </div>
             <p className="font-display text-2xl text-teal-dark">Nenhuma anotação ainda</p>
             <p className="mx-auto mt-1 max-w-sm text-sm text-muted">
-              Um toque por dia. O gráfico se monta sozinho.
+              Cada dia leva o que você sente, o que você vê e se houve relação.
             </p>
           </div>
         )}
-
-        <dl className="grid grid-cols-2 gap-px bg-line sm:grid-cols-4">
-          <Stat label="Dias" value={stats.days} />
-          <Stat label="Férteis" value={stats.fertile} />
-          <Stat label="Ápice" value={stats.peak ? formatDay(stats.peak) : "—"} />
-          <Stat label="Relações" value={stats.relations} />
-        </dl>
       </section>
 
       {open ? (
@@ -163,23 +153,5 @@ export function CycleBoard({
         />
       ) : null}
     </>
-  );
-}
-
-function detailLine(entry: DayEntryView) {
-  const parts = [
-    entry.sensation ? sensationDisplay(entry.sensation) : null,
-    mucusDisplay(entry.mucus) || null,
-    entry.notes.trim() || null,
-  ].filter(Boolean);
-  return parts.length ? parts.join(" · ") : "Sem detalhes";
-}
-
-function Stat({ label, value }: { label: string; value: string | number }) {
-  return (
-    <div className="bg-white px-4 py-3">
-      <dt className="text-sm text-muted">{label}</dt>
-      <dd className="font-display text-xl text-teal-dark">{value}</dd>
-    </div>
   );
 }

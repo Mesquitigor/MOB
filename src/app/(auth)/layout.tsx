@@ -1,6 +1,5 @@
 import Link from "next/link";
 import { Brand } from "@/components/logo";
-import { Stamp } from "@/components/stamp";
 
 export default function AuthLayout({ children }: { children: React.ReactNode }) {
   return (
@@ -16,12 +15,15 @@ export default function AuthLayout({ children }: { children: React.ReactNode }) 
           <p className="mt-6 max-w-md text-lg leading-relaxed text-muted">
             Um gráfico limpo do que você sente e vê — para o dia, o PDF e o envio ao seu e-mail.
           </p>
-          <div className="mt-10 flex gap-3">
-            <Stamp type="MENSTRUATION" size="md" />
-            <Stamp type="DRY" size="md" />
-            <Stamp type="FERTILE" size="md" />
-            <Stamp type="INFERTILE" size="md" />
-            <Stamp type="SPOTTING" size="md" />
+          <div className="mt-10 grid max-w-sm gap-3">
+            <div className="rounded-2xl border border-line bg-white px-4 py-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">O que sinto</p>
+              <p className="font-display text-2xl text-teal-dark">Seca</p>
+            </div>
+            <div className="rounded-2xl border border-line bg-white px-4 py-3">
+              <p className="text-[11px] font-semibold uppercase tracking-[0.14em] text-muted">O que vejo</p>
+              <p className="font-display text-2xl text-teal-dark">Nada</p>
+            </div>
           </div>
         </div>
         <p className="text-sm text-muted">Apoio às anotações. Não substitui instrutora credenciada.</p>
